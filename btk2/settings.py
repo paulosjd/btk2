@@ -1,5 +1,7 @@
 import datetime
+import logging
 import os
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -81,6 +83,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename=f'{BASE_DIR}/my_django_app.log',
+    filemode='a',
+    format='%(levelname)s %(asctime)s %(funcName)s %(lineno)d: [%(message)s]',
+)
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -133,3 +142,4 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'funcmols@gmail.com'
 EMAIL_HOST_PASSWORD = 'fliveevil1'
 EMAIL_USE_TLS = True
+

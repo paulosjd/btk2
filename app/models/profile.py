@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from app.tasks import send_verification_email
 
 
 class Profile(models.Model):
@@ -26,6 +27,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     """
     if created:
         Profile.objects.create(user=instance)
+        send_verification_email.delay(instance.pk)
 
 
 @receiver(post_save, sender=User)
@@ -34,18 +36,3 @@ def save_user_profile(sender, instance, **kwargs):
     Updates an instance when a User instance is updated
     """
     instance.profile.save()
-
-
-@receiver(post_save, sender=User)
-def send_verification_email(sender, instance, signal, *args, **kwargs):
-    if not instance.profile.email_confirmed:
-        # Send verification email
-        send_mail(
-            'Follow this link to verify your account: '
-            'http://localhost:8000'  # % reverse('verify', kwargs={
-                # from: 'uuid': str(instance.verification_uuid)
-                #}),
-            'from@foo.dev',
-            [instance.email],
-            fail_silently=False,
-        )
