@@ -1,0 +1,5 @@
+Celery==4.3.0
+Django==2.1.7
+djangorestframework_jwt==1.11.0
+PyJWT==1.7.1
+djangorestframework==3.9.2

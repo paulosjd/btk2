@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from app.tasks import send_verification_email
+from app.tasks.user_auth import send_verification_email
 
 
 class Profile(models.Model):
@@ -17,22 +17,20 @@ class Profile(models.Model):
     )
 
     def __str__(self):
-        return self.user.username + '_profile'
+        return self.user.email + '_profile'
 
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """
-    Creates an instance when a User instance is created
-    """
+    """ Creates a Profile instance when a User instance is created """
     if created:
+        # instance.email = f'{instance.username}_s@foo.com'
+        # instance.save()
         Profile.objects.create(user=instance)
         send_verification_email.delay(instance.pk)
 
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    """
-    Updates an instance when a User instance is updated
-    """
+    """ Updates a Profile instance when a User instance is updated """
     instance.profile.save()

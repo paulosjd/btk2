@@ -5,14 +5,20 @@ from .profile import Profile
 
 class DataPoint(models.Model):
 
-    date = models.DateField(
-        verbose_name='Measurement value'
-    )
     value = models.FloatField(
         max_length=5,
     )
     qualifier = models.CharField(
+        help_text='Noteworthy influences on a measurement value',
         max_length=50,
+        blank=True,
+        null=True,
+    )
+    date = models.DateField(
+        help_text='Date of measurement'
+    )
+    time = models.TimeField(
+        help_text='Optional time of measurement; can be influential',
         blank=True,
         null=True,
     )

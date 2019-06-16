@@ -85,7 +85,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 logging.basicConfig(
     level=logging.DEBUG,
-    filename=f'{BASE_DIR}/my_django_app.log',
+    filename=f'{BASE_DIR}/app_log.log',
     filemode='a',
     format='%(levelname)s %(asctime)s %(funcName)s %(lineno)d: [%(message)s]',
 )

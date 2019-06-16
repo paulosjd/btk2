@@ -12,14 +12,15 @@ class ProfileSummary(View):
         # user = ...  user look up and authenticate (or user auth decorator)
         # serialize user_summary(user)
         # default jsonresponse(error) or 404 or 403
-        log.info('PJD sdf')
         print(args)
         print(kwargs)
-
 
         return JsonResponse([
             {'name': 'body_weight', 'value': '65.5 kg', 'date': '19th Jan 2019'},
             {'name': 'blood_pressure', 'value': '65.5 kg', 'date': '19th Jan 2019'}], safe=False)
+
+    def summary_data(self):
+        pass
 
 
 
