@@ -15,9 +15,21 @@ class Profile(models.Model):
     email_confirmed = models.BooleanField(
         default=False,
     )
+    birth_year = models.IntegerField(
+        default=0,
+    )
+    gender = models.CharField(
+        choices=[('', ' '), ('m', 'Male'), ('f', 'Female')],
+        default='',
+        max_length=1
+    )
 
     def __str__(self):
         return self.user.email + '_profile'
+
+    def summary_data(self):
+        return self.user_datapoints.order_by(
+            'parameter', '-date').distinct('parameter')
 
 
 @receiver(post_save, sender=User)

@@ -1,8 +1,21 @@
-# from django import forms
-# from django.core.exceptions import ValidationError
-#
-# from compounds.models import Activity, Bioactive, Substructure
-#
+from django import forms
+from django.core.exceptions import ValidationError
+
+from app.models import Parameter
+
+
+class ParameterAdminForm(forms.ModelForm):
+    class Meta:
+        model = Parameter
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super(ParameterAdminForm, self).clean()
+        upload_fields = cleaned_data.get('upload_fields')
+        upload_field_labels = cleaned_data.get('upload_field_labels')
+        if len(upload_fields.split(', ')) != len(upload_field_labels.split(', ')):
+            raise ValidationError('upload_fields and upload_field_labels should match up')
+        return cleaned_data
 #
 # class ActivityAdminForm(forms.ModelForm):
 #     class Meta:

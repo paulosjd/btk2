@@ -1,27 +1,57 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from django.http import JsonResponse
-from django.views.generic import View
-
-
-class CsvUpload(View):
-
-    def post(self, request, *args, **kwargs):
-        # First step to specific format?
-        # THis method should authenticate based on credentials in headers ...
-        # depending on args - if file ... call generate_preview which returns json to use in react to nmake preview
-        # with hidden field a la postcode.. then when this method called again, takes post data, calls another
-        # method (or method on profile)
-        print(request.POST)
-        print(dir(request))
-        print(request)
-        print(request.body)
-        print(request.POST)
-
-        return JsonResponse({'foo': 'bar'}, safe=False)
+from app.models import DataPoint, Parameter
+from app.serializers import DataPointSerializer
+from app.utils import CsvToModelData
 
 
-    def generate_preview(self):
-        pass
+class CsvUploadView(APIView):
+    serializer_class = DataPointSerializer
 
+    def post(self, request):
+        """
+        :param request: dict, if key 'meta' provided this is must be a dict
+        :return: DRF Response object
+        """
+        confirm_data = request.data.get('data')
+        if confirm_data and all([confirm_data.get(s) for s in ['confirm', 'data', 'meta']]):
+            param_id = confirm_data.get('meta').get('param_id')
+            data_list = [{**con_dct, **{'parameter': param_id, 'profile': request.user.profile.id}}
+                         for con_dct in confirm_data['data']]
+            serializer = self.serializer_class(data=data_list, many=True)
+            error_msg = 'Something has gone wrong'
+            if serializer.is_valid():
+                parameter = get_object_or_404(Parameter.objects, id=param_id)
+                for val_data in serializer.data:
+                    val_data.update({'parameter': parameter, 'profile': request.user.profile})
+                bulk_create_result = DataPoint.bulk_create_from_csv_upload(serializer.data)
+                if bulk_create_result.message:
+                    error_msg = bulk_create_result.message
+                if bulk_create_result.success:
+                    return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
 
-    
+        upload_data = request.data.get('file')
+        date_fmt = Parameter.date_fmt_opts_map.get(request.data.get('date_format'))
+        if upload_data and date_fmt:
+            parameter = Parameter.objects.filter(name=request.data.get('param_choice')).first()
+            if parameter and parameter.upload_fields:
+                meta_dict = {
+                    'field_order': parameter.upload_fields.split(', '),
+                    'param_id': parameter.id,
+                    'date_fmt': date_fmt
+                }
+                csv_to_data = CsvToModelData(upload_data, meta_dict)
+                if csv_to_data.is_valid:
+                    return Response({'data': [{k: getattr(obj, k) for k in meta_dict['field_order']}
+                                              for obj in csv_to_data],
+                                     'meta': meta_dict},
+                                    status=status.HTTP_200_OK)
+                return Response({'error': csv_to_data.error},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'error': 'Bad request'},
+                        status=status.HTTP_400_BAD_REQUEST)

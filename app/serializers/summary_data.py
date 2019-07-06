@@ -1,8 +1,19 @@
 from rest_framework import serializers
-from app.models import Profile
+
+from app.models import DataPoint
+from .data_point import DataPointSerializer
+from .parameter import ParameterSerializer
 
 
-class SummaryDataSerializer(serializers.ModelSerializer):
+class SummaryDataPointSerializer(DataPointSerializer):
     class Meta:
-        model = Profile
-        # fields = ('name', 'slug')
+        model = DataPoint
+        exclude = ('profile', 'parameter')
+
+
+class SummaryDataSerializer(serializers.Serializer):
+    parameter = ParameterSerializer()
+    data_point = SummaryDataPointSerializer()
+
+    class Meta:
+        fields = ('key', 'parameter', 'data_point')

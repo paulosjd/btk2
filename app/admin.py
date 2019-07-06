@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-# from .forms.admin import ActivityAdminForm, BioactiveAdminForm, SubstructureAdminForm
+from .forms import ParameterAdminForm
 from .models import (DataPoint, Parameter, Profile, UnitOption, )
 
 
@@ -24,7 +24,7 @@ class DataPointAdmin(admin.ModelAdmin):
 
 @admin.register(Parameter)
 class ParameterAdmin(admin.ModelAdmin):
-    pass
+    form = ParameterAdminForm
 
 
 @admin.register(Profile)
