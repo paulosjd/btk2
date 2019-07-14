@@ -97,7 +97,7 @@ class CsvToModelData:
                         cast_val = datetime.strptime(
                             data[row_ind][cell_ind], date_fmt).date()
                     except ValueError:
-                        self.error = f'Format issue: Column {cell_ind + 1} Row {error_row}'
+                        self.error = f'Column {cell_ind + 1}: date format issue'
                         return
                     data[row_ind][cell_ind] = cast_val
                 else:

@@ -1,6 +1,7 @@
 from collections import namedtuple
 from django.db import IntegrityError, models
 
+from .managers.datapoint_manager import DatapointManager
 from .parameter import Parameter
 from .profile import Profile
 
@@ -40,7 +41,10 @@ class DataPoint(models.Model):
         on_delete=models.CASCADE,
         related_name='user_datapoints',
     )
-    # objects = SubTopicManager()
+    objects = DatapointManager()
+
+    class Meta:
+        ordering = ('date', )
 
     def __str__(self):
         return f'{self.profile} {self.parameter} at {self.date}'
@@ -53,7 +57,7 @@ class DataPoint(models.Model):
         """
         Result = namedtuple('BulkCreateResult', ['success', 'message'])
         for dct in valid_data:
-            unique_data = {field: dct[field] for field in ['value', 'date', 'parameter']}
+            unique_data = {field: dct[field] for field in ['value', 'date', 'parameter', 'profile']}
             if cls.objects.filter(**unique_data).exists():
                 return Result(False, f"{dct['parameter'].name} data on {dct['date']} already exists")
         try:
@@ -61,3 +65,4 @@ class DataPoint(models.Model):
         except (ValueError, IntegrityError):
             return Result(False, '')
         return Result(True, '')
+

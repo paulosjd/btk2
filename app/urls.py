@@ -3,6 +3,7 @@ from django.urls import path
 from .views.profile import (
     ProfileInfoUpdate, ProfileSummaryData,
 )
+from .views.csv_download import CsvDownloadView
 from .views.csv_upload import CsvUploadView
 from .views.user import (
     LoginHelp, PasswordReset, RegistrationAPIView
@@ -15,6 +16,7 @@ urlpatterns = [
 
     path('profile/summary', ProfileSummaryData.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
+    path('download/datapoints', CsvDownloadView.as_view()),
     path('upload/datapoints', CsvUploadView.as_view()),
 
     # do need to send across user_id - can get from jwt?  -

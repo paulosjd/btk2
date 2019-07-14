@@ -24,6 +24,14 @@ class Profile(models.Model):
         max_length=1
     )
 
+    # Instead -- put this on datapoint ?? - less complicated to configure - default would be the default for the param
+    # add constraint so that for a profile this unit must be consistent
+    # unit_options = models.ManyToManyField(
+    #     'compounds.UnitOption',
+    #     related_name='unit_options',
+    #     blank=True,
+    # )
+
     def __str__(self):
         return self.user.email + '_profile'
 
