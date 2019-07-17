@@ -16,6 +16,7 @@ class CsvUploadView(APIView):
         :param request: dict, if key 'meta' provided this is must be a dict
         :return: DRF Response object
         """
+        # First check for confirm data of uploaded file
         confirm_data = request.data.get('data')
         if confirm_data and all([confirm_data.get(s) for s in ['confirm', 'data', 'meta']]):
             param_id = confirm_data.get('meta').get('param_id')
@@ -33,6 +34,11 @@ class CsvUploadView(APIView):
                 if bulk_create_result.success:
                     return Response({'status': 'Success'}, status=status.HTTP_200_OK)
             return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check for uploaded file etc
+        print(request.data.get('unit_choice'))
+        print(request.data.get('unit_option'))
+        print(request.data.get('unit_option'))
 
         upload_data = request.data.get('file')
         date_fmt = Parameter.date_fmt_opts_map.get(request.data.get('date_format'))

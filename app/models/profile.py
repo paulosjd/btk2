@@ -23,13 +23,11 @@ class Profile(models.Model):
         default='',
         max_length=1
     )
-
-    # Instead -- put this on datapoint ?? - less complicated to configure - default would be the default for the param
-    # add constraint so that for a profile this unit must be consistent
-    # unit_options = models.ManyToManyField(
+    # param_unit_option = models.ManyToManyField(
     #     'compounds.UnitOption',
-    #     related_name='unit_options',
+    #     related_name='param_unit_options',
     #     blank=True,
+    #     null=True,
     # )
 
     def __str__(self):

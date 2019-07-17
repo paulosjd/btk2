@@ -13,19 +13,9 @@ class Parameter(models.Model):
 
     name = models.CharField(
         max_length=50,
-        help_text='e.g. Body weight'
+        help_text='e.g. Body weight',
+        unique=True,
     )
-
-    # modifying_factor = models.ForeignKey(
-    #     'app.ModifyingFactor',
-    #     help_text='Information to compensate e.g. time taken bp g ... so that on trend line can factor out slightly',
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True,
-    # )
-    # date_time  ... so use this to give modifying_factor a fixed value using time, in certain cases, e.g.
-    # enter a BP and is mid morning -5% whereas at 9pm +5%
-
     default_unit_name = models.CharField(
         max_length=100,
         help_text='Label e.g. kilograms'
@@ -49,10 +39,29 @@ class Parameter(models.Model):
 
     objects = ParameterManager()
 
+    @property
+    def available_unit_options(self):
+        return [{s: getattr(unit_choice, s) for s in ['name', 'symbol', 'conversion_factor']}
+                for unit_choice in self.unit_choices.all()]
+
     def __str__(self):
+        return self.name
+
+    def __repr__(self):
         return f'Parameter: {self.name}'
 
     def save(self, **kwargs):
         if len(self.upload_fields.split(', ')) != len(self.upload_field_labels.split(', ')):
             raise ValidationError('fields should equal')
         super(Parameter, self).save(**kwargs)
+
+
+    # modifying_factor = models.ForeignKey(
+    #     'app.ModifyingFactor',
+    #     help_text='Information to compensate e.g. time taken bp g ... so that on trend line can factor out slightly',
+    #     on_delete=models.SET_NULL,
+    #     null=True,
+    #     blank=True,
+    # )
+    # date_time  ... so use this to give modifying_factor a fixed value using time, in certain cases, e.g.
+    # enter a BP and is mid morning -5% whereas at 9pm +5%

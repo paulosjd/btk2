@@ -1,9 +1,15 @@
 from collections import namedtuple
+import logging
+
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models
 
 from .managers.datapoint_manager import DatapointManager
 from .parameter import Parameter
+from .profile_param_unit_option import ProfileParamUnitOption
 from .profile import Profile
+
+log = logging.getLogger(__name__)
 
 
 class DataPoint(models.Model):
@@ -48,6 +54,14 @@ class DataPoint(models.Model):
 
     def __str__(self):
         return f'{self.profile} {self.parameter} at {self.date}'
+
+    def save(self, *args, **kwargs):
+        try:
+            ProfileParamUnitOption.get_for_profile_parameter(self.profile, self.parameter)
+        except ProfileParamUnitOption.DoesNotExist as e:
+            log.error(e)
+            raise ValidationError(f'ProfileParamUnitOption does not exist for {self.profile} -- {self.parameter}')
+        super(DataPoint, self).save(*args, **kwargs)
 
     @classmethod
     def bulk_create_from_csv_upload(cls, valid_data):

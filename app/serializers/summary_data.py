@@ -14,6 +14,8 @@ class SummaryDataPointSerializer(DataPointSerializer):
 class SummaryDataSerializer(serializers.Serializer):
     parameter = ParameterSerializer()
     data_point = SummaryDataPointSerializer()
+    unit_name = serializers.CharField()
+    unit_symbol = serializers.CharField()
 
     class Meta:
-        fields = ('key', 'parameter', 'data_point')
+        fields = ('key', 'parameter', 'data_point', 'unit_name', 'unit_symbol')
