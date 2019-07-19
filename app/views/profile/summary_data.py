@@ -41,7 +41,7 @@ class ProfileSummaryData(APIView):
 
         # Update each 'parameter' dict with units of measurement
         for ind, data_dct in enumerate(data):
-            unit_option_record = ProfileParamUnitOption.get_for_profile_parameter(profile, queryset[ind].parameter)
+            unit_option_record = ProfileParamUnitOption.get_unit_option(profile, queryset[ind].parameter)
             data_dct.update({f'unit_{field}': getattr(unit_option_record, field)
                              for field in ['symbol', 'name', ]})
 

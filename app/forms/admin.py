@@ -13,9 +13,12 @@ class ParameterAdminForm(forms.ModelForm):
         cleaned_data = super(ParameterAdminForm, self).clean()
         upload_fields = cleaned_data.get('upload_fields')
         upload_field_labels = cleaned_data.get('upload_field_labels')
+        upload_fields_len = len(upload_field_labels.split(', '))
         if all([upload_fields, upload_field_labels]) and \
-                len(upload_fields.split(', ')) != len(upload_field_labels.split(', ')):
-            raise ValidationError('upload_fields and upload_field_labels should match up')
+                len(upload_fields.split(', ')) != upload_fields_len or upload_fields_len < 2:
+            raise ValidationError('upload_fields and upload_field_labels should match up and upload_field_labels gt 2')
+        if upload_fields_len != cleaned_data['num_values'] + 1:
+            raise ValidationError('split upload_field_labels and num_values + 1 do not match up')
         return cleaned_data
 
 

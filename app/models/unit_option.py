@@ -23,13 +23,13 @@ class UnitOption(models.Model):
         default=False,
     )
     parameter = models.ForeignKey(
-        Parameter,
+        'app.Parameter',
         related_name='unit_choices',
         on_delete=models.CASCADE,
     )
 
     class Meta:
-        unique_together = ('parameter', 'symbol',)
+        unique_together = ('parameter', 'name', )
         ordering = ('-param_default', 'name', )
 
     def __str__(self):

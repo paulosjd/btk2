@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import DataPoint, Parameter
+from app.models import DataPoint, Parameter, ProfileParamUnitOption, UnitOption
 from app.serializers import DataPointSerializer
 from app.utils import CsvToModelData
 
@@ -24,22 +24,34 @@ class CsvUploadView(APIView):
                          for con_dct in confirm_data['data']]
             serializer = self.serializer_class(data=data_list, many=True)
             error_msg = 'Something has gone wrong'
+
             if serializer.is_valid():
                 parameter = get_object_or_404(Parameter.objects, id=param_id)
+                unit_option = None
+                unit_choice = confirm_data.get('meta').get('unit_choice')
+                if unit_choice:
+                    try:
+                        unit_option = UnitOption.objects.filter(parameter=parameter, name=unit_choice).get()
+                    except UnitOption.DoesNotExist:
+                        return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
                 for val_data in serializer.data:
                     val_data.update({'parameter': parameter, 'profile': request.user.profile})
+
                 bulk_create_result = DataPoint.bulk_create_from_csv_upload(serializer.data)
                 if bulk_create_result.message:
                     error_msg = bulk_create_result.message
+
                 if bulk_create_result.success:
+                    if unit_option:
+                        ProfileParamUnitOption.objects.get_or_create(
+                            parameter=parameter, unit_option=unit_option, profile=request.user.profile
+                        )
                     return Response({'status': 'Success'}, status=status.HTTP_200_OK)
+
             return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check for uploaded file etc
-        print(request.data.get('unit_choice'))
-        print(request.data.get('unit_option'))
-        print(request.data.get('unit_option'))
-
         upload_data = request.data.get('file')
         date_fmt = Parameter.date_fmt_opts_map.get(request.data.get('date_format'))
         if upload_data and date_fmt:
@@ -48,7 +60,8 @@ class CsvUploadView(APIView):
                 meta_dict = {
                     'field_order': parameter.upload_fields.split(', '),
                     'param_id': parameter.id,
-                    'date_fmt': date_fmt
+                    'date_fmt': date_fmt,
+                    'unit_choice': request.data.get('unit_choice')
                 }
                 csv_to_data = CsvToModelData(upload_data, meta_dict)
                 if csv_to_data.is_valid:
@@ -59,5 +72,4 @@ class CsvUploadView(APIView):
                 return Response({'error': csv_to_data.error},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'error': 'Bad request'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Bad request'}, status=status.HTTP_400_BAD_REQUEST)

@@ -34,7 +34,12 @@ class Parameter(models.Model):
         max_length=100,
         help_text="Allows mapping of descriptive names to the model fields 'value' and 'value2'. E.g. mapping the "
                   "names 'systolic' and 'diastolic' to these fields for a model instance representing blood pressure",
-        default=''
+    )
+    num_values = models.IntegerField(
+        choices=[(1, '1'), (2, '2')],
+        help_text='Indicates whether the DataPoint uses optional second value',
+        default=1,
+        verbose_name='Number of DataPoint values'
     )
 
     objects = ParameterManager()
@@ -51,8 +56,12 @@ class Parameter(models.Model):
         return f'Parameter: {self.name}'
 
     def save(self, **kwargs):
-        if len(self.upload_fields.split(', ')) != len(self.upload_field_labels.split(', ')):
-            raise ValidationError('fields should equal')
+        upload_fields_len = len(self.upload_field_labels.split(', '))
+        upload_fields_len_ne = len(self.upload_fields.split(', ')) != upload_fields_len
+        if upload_fields_len_ne or upload_fields_len < 2:
+            raise ValidationError('fields should equal and upload_field_labels needs gt 1 item')
+        if upload_fields_len != self.num_values + 1:
+            raise ValidationError('split upload_field_labels and num_values + 1 do not match up')
         super(Parameter, self).save(**kwargs)
 
 

@@ -42,8 +42,6 @@ class Profile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     """ Creates a Profile instance when a User instance is created """
     if created:
-        # instance.email = f'{instance.username}_s@foo.com'
-        # instance.save()
         Profile.objects.create(user=instance)
         send_verification_email.delay(instance.pk)
 

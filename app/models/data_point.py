@@ -5,9 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models
 
 from .managers.datapoint_manager import DatapointManager
-from .parameter import Parameter
 from .profile_param_unit_option import ProfileParamUnitOption
-from .profile import Profile
 
 log = logging.getLogger(__name__)
 
@@ -38,12 +36,12 @@ class DataPoint(models.Model):
         null=True,
     )
     parameter = models.ForeignKey(
-        Parameter,
+        'app.Parameter',
         on_delete=models.CASCADE,
         related_name='parameters',
     )
     profile = models.ForeignKey(
-        Profile,
+        'app.Profile',
         on_delete=models.CASCADE,
         related_name='user_datapoints',
     )
@@ -57,7 +55,7 @@ class DataPoint(models.Model):
 
     def save(self, *args, **kwargs):
         try:
-            ProfileParamUnitOption.get_for_profile_parameter(self.profile, self.parameter)
+            ProfileParamUnitOption.get_unit_option(self.profile, self.parameter)
         except ProfileParamUnitOption.DoesNotExist as e:
             log.error(e)
             raise ValidationError(f'ProfileParamUnitOption does not exist for {self.profile} -- {self.parameter}')
