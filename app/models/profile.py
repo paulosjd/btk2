@@ -33,6 +33,10 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.email + '_profile'
 
+    def all_datapoints(self):
+        return self.user_datapoints.order_by(
+            'parameter', '-date').all()
+
     def summary_data(self):
         return self.user_datapoints.order_by(
             'parameter', '-date').distinct('parameter')

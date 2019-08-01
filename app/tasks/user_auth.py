@@ -2,6 +2,7 @@ from celery.utils.log import get_task_logger
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordResetForm
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
 
 from btk2.celery import celery_app
@@ -19,7 +20,7 @@ def send_username_reminder_email(email):
     """
     try:
         user = User.objects.get(email=email)
-    except User.DoesNotExist:
+    except ObjectDoesNotExist:
         return
     try:
         send_mail(
@@ -66,6 +67,5 @@ def send_verification_email(user_id):
         except IOError as e:
             log.debug(e)
 
-    except User.DoesNotExist:
+    except ObjectDoesNotExist:
         log.warning(f'send_verification_email failed. user_id: {user_id}')
-

@@ -13,7 +13,7 @@ class CsvUploadView(APIView):
 
     def post(self, request):
         """
-        :param request: dict, if key 'meta' provided this is must be a dict
+        :param request: dict, if key 'meta' provided this must be a dict
         :return: DRF Response object
         """
         # First check for confirm data of uploaded file
@@ -31,7 +31,7 @@ class CsvUploadView(APIView):
                 unit_choice = confirm_data.get('meta').get('unit_choice')
                 if unit_choice:
                     try:
-                        unit_option = UnitOption.objects.filter(parameter=parameter, name=unit_choice).get()
+                        unit_option = UnitOption.objects.get(parameter=parameter, name=unit_choice)
                     except UnitOption.DoesNotExist:
                         return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -49,6 +49,7 @@ class CsvUploadView(APIView):
                         )
                     return Response({'status': 'Success'}, status=status.HTTP_200_OK)
 
+            print(serializer.errors)
             return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check for uploaded file etc

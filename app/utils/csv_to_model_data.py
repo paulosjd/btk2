@@ -10,7 +10,8 @@ class CsvToModelData:
     def __init__(self, csvfile: str, meta: dict):
         """
         :param csvfile: csv file object
-        :param meta: dict with processing info e.g. {'field_order': ['date', 'value'], 'date_fmt': '%d/%m/%y'}
+        :param meta: dict with processing info
+        e.g. {'field_order': ['date', 'value'], 'date_fmt': '%d/%m/%y'}
         """
         self.csvfile = csvfile
         self.meta = meta
@@ -65,7 +66,8 @@ class CsvToModelData:
             self.error = 'Please check formatting and try again'
             return False
 
-        if not all([len(row) == len(self.meta.get('field_order')) for row in data]):
+        if not all([len(row) == len(self.meta.get('field_order'))
+                    for row in data]):
             self.error = 'Please check formatting and try again'
             return False
 
@@ -89,7 +91,8 @@ class CsvToModelData:
                     try:
                         cast_val = float(data[row_ind][cell_ind])
                     except ValueError:
-                        self.error = f'Format issue: Column {cell_ind + 1} Row {error_row}'
+                        self.error = f'Format issue: Column {cell_ind + 1}' \
+                                     f' Row {error_row}'
                         return
                     data[row_ind][cell_ind] = cast_val
                 elif self.field_types_map.get(field) == date:

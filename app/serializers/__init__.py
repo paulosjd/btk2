@@ -1,7 +1,7 @@
-from app.serializers.data_point import DataPointSerializer
-from app.serializers.parameter import ParameterSerializer
-from app.serializers.profile import ProfileSerializer
-from app.serializers.summary_data import SummaryDataSerializer
+from app.serializers.data_point_ser import DataPointSerializer
+from app.serializers.parameter_ser import ParameterSerializer
+from app.serializers.profile_ser import ProfileSerializer
+from app.serializers.summary_data_ser import SummaryDataSerializer
 from app.serializers.user.registration import RegistrationSerializer
 
 __all__ = [

@@ -26,6 +26,7 @@ class Parameter(models.Model):
     )
     upload_fields = models.CharField(
         max_length=100,
+        default='name, value',
         verbose_name='csv upload field order string',
         help_text="Use comma separated field names e.g. 'date, value'"
 
