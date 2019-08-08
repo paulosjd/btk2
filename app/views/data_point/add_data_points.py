@@ -24,14 +24,14 @@ class AddDataPoints(BaseDataPointsView):
                            for field in param_fields + ['date']}
             except KeyError:
                 continue
-            if not all(dp_data.values()):
-                continue
             for k, v in dp_data.items():
                 try:
                     dp_data[k] = datetime.strptime(dp_data[k], '%Y-%m-%d') \
-                        if k == 'date' else round(float(dp_data[k]), 1)
+                        if k == 'date' else round(float(dp_data[k]), 2)
                 except ValueError:
                     continue
+            if not all(dp_data.values()):
+                continue
 
             DataPoint.update_on_date_match_or_create(
                 parameter=parameter, profile=self.request.user.profile,

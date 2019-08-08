@@ -40,17 +40,23 @@ class ProfileParamUnitOption(models.Model):
         except cls.DoesNotExist:
             logging.error(f'ProfileParamUnitOption not exist for {parameter}')
         except cls.MultipleObjectsReturned:
-            logging.error(f'ProfileParamUnitOption multiple records for {parameter}')
+            logging.error(f'ProfileParamUnitOpt multiple recs for {parameter}')
         logging.info(f'get unit option returned: {parameter.name}')
         return UnitOption.get_default_for_param(parameter)
+
+    @classmethod
+    def get_null_data_params(cls, profile):
+        excl_params = profile.summary_data().values_list('parameter')
+        return cls.objects.filter(profile=profile).exclude(
+            parameter__in=excl_params).all()
 
 
 @receiver(post_delete)
 def profile_param_unit_option_post_delete(sender, instance, *args, **kwargs):
     """ To clean up any redundant model instances, e.g. no DataPoint instances
     pointing to a Parameter that such a model
-     points to. Note that as sender argument not included in the decorator,
-     this callback is called for all models """
+    points to. Note that as sender argument not included in the decorator,
+    this callback is called for all models """
     from app.models.data_point import DataPoint
     if sender == DataPoint:
         filter_kwargs = dict(profile=instance.profile,

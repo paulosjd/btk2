@@ -6,7 +6,7 @@ from .parameter import Parameter
 
 
 class UnitOption(models.Model):
-    """ Represents a non-default unit of measurement for a parameter, e.g. lb for body mass """
+    """ Represents unit of measurement """
     name = models.CharField(
         max_length=100,
         help_text='Label e.g. pounds'
@@ -17,7 +17,8 @@ class UnitOption(models.Model):
     )
     conversion_factor = models.FloatField(
         max_length=10,
-        help_text='Enables conversion to and from the default unit of measurement; can be negative'
+        help_text='Enables conversion to and from the default unit of '
+                  'measurement; can be negative'
     )
     param_default = models.BooleanField(
         default=False,

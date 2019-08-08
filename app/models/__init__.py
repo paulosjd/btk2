@@ -3,6 +3,7 @@ from .parameter import Parameter
 from .profile import Profile
 from .profile_param_unit_option import ProfileParamUnitOption
 from .unit_option import UnitOption
+from .user import User
 
 __all__ = [
     DataPoint,
@@ -10,4 +11,5 @@ __all__ = [
     Profile,
     ProfileParamUnitOption,
     UnitOption,
+    User
 ]

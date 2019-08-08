@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from app.models import Parameter
+from app.models import Parameter, User
 
 
 class ParameterAdminForm(forms.ModelForm):
@@ -12,15 +12,41 @@ class ParameterAdminForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ParameterAdminForm, self).clean()
         upload_fields = cleaned_data.get('upload_fields')
-        upload_field_labels = cleaned_data.get('upload_field_labels')
-        upload_fields_len = len(upload_field_labels.split(', '))
-        if all([upload_fields, upload_field_labels]) and \
-                len(upload_fields.split(', ')) != upload_fields_len or upload_fields_len < 2:
-            raise ValidationError('upload_fields and upload_field_labels should match up and upload_field_labels gt 2')
-        if upload_fields_len != cleaned_data['num_values'] + 1:
-            raise ValidationError('split upload_field_labels and num_values + 1 do not match up')
+        uf_labels = cleaned_data.get('upload_field_labels', '')
+        uf_len = len(uf_labels.split(', '))
+        invalid_uf_len = len(upload_fields.split(', ')) != uf_len or uf_len < 2
+        if all([upload_fields, uf_labels]) and invalid_uf_len:
+            raise ValidationError('upload_fields and uplaod_field_labels should'
+                                  ' match up and upload_field_labels gt 2')
+        if uf_len != cleaned_data['num_values'] + 1:
+            raise ValidationError('split upload_fields_labels and '
+                                  'num_values + 1 do not match up')
         return cleaned_data
 
+
+# class UserCreationForm(forms.ModelForm):
+#     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
+#     password2 = forms.CharField(label='Password confirmation',
+#                                 widget=forms.PasswordInput)
+#     is_temporary = forms.BooleanField(label='Is temp user')
+#
+#     class Meta:
+#         model = User
+#         fields = '__all__'
+#
+#     def clean_password2(self):
+#         password1 = self.cleaned_data.get("password1")
+#         password2 = self.cleaned_data.get("password2")
+#         if password1 and password2 and password1 != password2:
+#             raise forms.ValidationError("Passwords don't match")
+#         return password2
+#
+#     def save(self, commit=True):
+#         user = super().save(commit=False)
+#         user.set_password(self.cleaned_data["password1"])
+#         if commit:
+#             user.save()
+#         return user
 
 
 #

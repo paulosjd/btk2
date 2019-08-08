@@ -1,22 +1,30 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 
 from .forms import ParameterAdminForm
 from .models import (
-    DataPoint, Parameter, Profile, UnitOption, ProfileParamUnitOption,
+    DataPoint, Parameter, Profile, UnitOption, ProfileParamUnitOption, User
 )
 
 
 class CustomUserAdmin(UserAdmin):
+    # add_form = UserCreationForm
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'username', 'password1', 'password2',
+                       'is_temporary')}
+         ),
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         UserAdmin.list_display = (
-            'username', 'email', 'first_name', 'last_name', 'is_staff'
+            'username', 'email', 'first_name', 'last_name', 'is_staff',
+            'is_temporary'
         )
 
 
-admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
 

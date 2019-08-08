@@ -8,10 +8,11 @@ from app.views.data_point.edit_data_points import EditDataPoints
 from .views.csv_download import CsvDownloadView
 from .views.csv_upload import CsvUploadView
 from .views.user import (
-    LoginHelp, PasswordReset, RegistrationAPIView
+    LoginHelp, PasswordReset, RegistrationAPIView, DemoRegistrationAPIView
 )
 
 urlpatterns = [
+    path('users/demo/registration', DemoRegistrationAPIView.as_view()),
     path('users/registration', RegistrationAPIView.as_view()),
     path('users/help/<forgot>', LoginHelp.as_view()),
     path('users/password-reset', PasswordReset.as_view()),

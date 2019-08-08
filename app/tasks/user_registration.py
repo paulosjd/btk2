@@ -1,6 +1,6 @@
 from celery.utils.log import get_task_logger
 from django.core.mail import send_mail
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
@@ -8,6 +8,8 @@ from django.http import HttpRequest
 from btk2.celery import celery_app
 
 log = get_task_logger(__name__)
+
+User = get_user_model()
 
 
 @celery_app.task

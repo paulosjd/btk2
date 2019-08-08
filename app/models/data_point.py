@@ -22,12 +22,6 @@ class DataPoint(models.Model):
         null=True,
         blank=True,
     )
-    qualifier = models.CharField(
-        help_text='Noteworthy influences on a measurement value',
-        max_length=50,
-        blank=True,
-        null=True,
-    )
     date = models.DateField(
         help_text='Date of measurement'
     )
@@ -103,3 +97,7 @@ class DataPoint(models.Model):
             for k, v in kwargs.items():
                 setattr(record, k, v)
             record.save()
+
+    @classmethod
+    def create_demo_profile_data(cls, profile):
+        cls.objects.filter(profile__user__name='demo').update(profile=profile)

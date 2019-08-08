@@ -1,7 +1,7 @@
 import datetime
 import logging
 import os
-
+from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     'rest_framework',
 
 ]
+
+AUTH_USER_MODEL = 'app.User'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -127,7 +129,7 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=86400)
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=94200)
 }
 
 # REDIS related settings
