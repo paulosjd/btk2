@@ -45,7 +45,7 @@ class ProfileParamUnitOption(models.Model):
         return UnitOption.get_default_for_param(parameter)
 
     @classmethod
-    def get_null_data_params(cls, profile):
+    def null_data_params(cls, profile):
         excl_params = profile.summary_data().values_list('parameter')
         return cls.objects.filter(profile=profile).exclude(
             parameter__in=excl_params).all()

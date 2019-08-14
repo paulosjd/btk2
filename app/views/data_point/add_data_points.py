@@ -10,6 +10,7 @@ class AddDataPoints(BaseDataPointsView):
         form_data = request.data.get('value')
         parameter = Parameter.objects.filter(
             name=form_data.get('parameter')).first()
+
         if form_data and parameter:
             self.process_post_data(form_data, parameter)
         return self.json_response()

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views.profile import (
-    ProfileInfoUpdate, ProfileSummaryData,
+    MenuItemAdd, ProfileInfoUpdate, ProfileSummaryData,
 )
 from app.views.data_point.add_data_points import AddDataPoints
 from app.views.data_point.edit_data_points import EditDataPoints
@@ -18,6 +18,7 @@ urlpatterns = [
     path('users/password-reset', PasswordReset.as_view()),
 
     path('profile/summary', ProfileSummaryData.as_view()),
+    path('profile/menu-item-add', MenuItemAdd.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('datapoints/add', AddDataPoints.as_view()),
     path('datapoints/edit', EditDataPoints.as_view()),

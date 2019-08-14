@@ -22,18 +22,12 @@ class DemoRegistrationAPIView(APIView):
     serializer_class = RegistrationSerializer
 
     def get(self, request):
-
         my_user = User.objects.create(is_temporary=True,
                                       username=f'demo_{uuid.uuid4().hex[:16]}')
         payload = jwt_payload_handler(my_user)
         if api_settings.JWT_ALLOW_REFRESH:
             payload['orig_iat'] = timegm(datetime.utcnow().utctimetuple())
-        # serializer.data.update({'token': jwt.encode(payload, SECRET_KEY)})
         return Response(
-            dict(token=jwt.encode(payload, SECRET_KEY), ), #**serializer.data
+            dict(token=jwt.encode(payload, SECRET_KEY), ),
             status=status.HTTP_201_CREATED
         )
-
-        #
-        # return Response({'status': 'Bad request', 'errors': errors},
-        #                 status=status.HTTP_400_BAD_REQUEST)

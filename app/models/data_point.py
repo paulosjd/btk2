@@ -25,6 +25,8 @@ class DataPoint(models.Model):
     date = models.DateField(
         help_text='Date of measurement'
     )
+    # qualifier = models.CharField(
+
     parameter = models.ForeignKey(
         'app.Parameter',
         on_delete=models.CASCADE,

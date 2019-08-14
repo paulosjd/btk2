@@ -42,7 +42,8 @@ class UnitOption(models.Model):
     def save(self, *args, **kwargs):
         if self.param_default:
             try:
-                unit_opt = UnitOption.objects.get(param_default=True, parameter=self.parameter)
+                unit_opt = UnitOption.objects.get(
+                    param_default=True, parameter=self.parameter)
                 unit_opt.param_default = False
                 unit_opt.save()
             except UnitOption.DoesNotExist:
@@ -55,12 +56,12 @@ class UnitOption(models.Model):
 
 
 @receiver(post_save, sender=Parameter)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_unit_option(sender, instance, created, **kwargs):
     """ Creates a Profile instance when a User instance is created """
     if created:
         UnitOption.objects.create(
-            name=instance.default_unit_name,
-            symbol=instance.default_unit_symbol,
+            name=f'todo unit opt name for {instance.name}',
+            symbol='todo',
             conversion_factor=1,
             param_default=True,
             parameter=instance

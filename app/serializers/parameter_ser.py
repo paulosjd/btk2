@@ -14,4 +14,5 @@ class ParameterSerializer(serializers.ModelSerializer):
         fields = (
             'name', 'upload_fields', 'upload_field_labels',
             'available_unit_options', 'unit_name', 'unit_symbol',
+            'num_values', *[f'value2_short_label_{i}' for i in [1, 2]]
         )

@@ -16,14 +16,6 @@ class Parameter(models.Model):
         help_text='e.g. Body weight',
         unique=True,
     )
-    default_unit_name = models.CharField(
-        max_length=100,
-        help_text='Label e.g. kilograms'
-    )
-    default_unit_symbol = models.CharField(
-        max_length=8,
-        help_text='Label e.g. kg'
-    )
     upload_fields = models.CharField(
         max_length=100,
         default='name, value',
@@ -39,6 +31,18 @@ class Parameter(models.Model):
         help_text='Indicates whether the DataPoint uses optional second value',
         default=1,
         verbose_name='Number of DataPoint values'
+    )
+    value2_short_label_1 = models.CharField(
+        max_length=3,
+        help_text="very short e.g. 3 letters, for 'value' display labels",
+        null=True,
+        blank=True
+    )
+    value2_short_label_2 = models.CharField(
+        max_length=3,
+        help_text="very short e.g. 3 letters, for 'value2' display labels",
+        null=True,
+        blank=True
     )
 
     objects = ParameterManager()
