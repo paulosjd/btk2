@@ -15,6 +15,10 @@ class Profile(models.Model):
     birth_year = models.IntegerField(
         default=0,
     )
+    height = models.IntegerField(
+        default=0,
+        help_text='Height in cm'
+    )
     gender = models.CharField(
         choices=[('', ' '), ('m', 'Male'), ('f', 'Female')],
         default='',
@@ -35,3 +39,5 @@ class Profile(models.Model):
     @classmethod
     def create_demo_user(cls):
         cls.objects.create(is_temporary=True)
+
+

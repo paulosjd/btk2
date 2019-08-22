@@ -10,4 +10,5 @@ class DataPointSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DataPoint
-        fields = ('id', 'value', 'value2', 'date', 'parameter', 'num_values')
+        fields = ('id', 'value', 'value2', 'date', 'parameter', 'num_values',
+                  'qualifier')

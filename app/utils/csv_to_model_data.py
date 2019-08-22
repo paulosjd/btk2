@@ -89,7 +89,10 @@ class CsvToModelData:
                 error_row = row_ind + self.meta['first_row']
                 if self.field_types_map.get(field) == float:
                     try:
-                        cast_val = float(data[row_ind][cell_ind])
+                        cast_val = round(float(data[row_ind][cell_ind]), 2)
+                        if cast_val > 10000:
+                            self.error = 'Maximum allowable value is 10,000'
+                            return
                     except ValueError:
                         self.error = f'Format issue: Column {cell_ind + 1}' \
                                      f' Row {error_row}'

@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models
 
 from .managers.datapoint_manager import DatapointManager
-from .profile_param_unit_option import ProfileParamUnitOption
+from .profile_parameter import ProfileParamUnitOption
 
 log = logging.getLogger(__name__)
 
@@ -13,10 +13,10 @@ log = logging.getLogger(__name__)
 class DataPoint(models.Model):
 
     value = models.FloatField(
-        max_length=5,
+        max_length=6,
     )
     value2 = models.FloatField(
-        max_length=5,
+        max_length=6,
         help_text='For handling cases e.g. blood pressure two values -- '
                   'diastolic and systolic bp',
         null=True,
@@ -25,8 +25,12 @@ class DataPoint(models.Model):
     date = models.DateField(
         help_text='Date of measurement'
     )
-    # qualifier = models.CharField(
-
+    qualifier = models.CharField(
+        max_length=50,
+        help_text='Qualifying notes e.g. time of day',
+        null=True,
+        blank=True,
+    )
     parameter = models.ForeignKey(
         'app.Parameter',
         on_delete=models.CASCADE,

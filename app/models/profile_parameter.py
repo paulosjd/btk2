@@ -1,16 +1,18 @@
 import logging
+from collections import namedtuple
 
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from app.models.unit_option import UnitOption
-
+from app.models.unit_option import Parameter, UnitOption
+from app.utils.calc_param_ideal import CalcParamIdeal
 
 log = logging.getLogger(__name__)
 
 
 class ProfileParamUnitOption(models.Model):
+
     parameter = models.ForeignKey(
         'app.Parameter',
         on_delete=models.CASCADE,
@@ -24,12 +26,32 @@ class ProfileParamUnitOption(models.Model):
         related_name='param_unit_options',
         on_delete=models.CASCADE,
     )
+    target_value = models.FloatField(
+        max_length=6,
+        null=True,
+        blank=True
+    )
 
     class Meta:
-        unique_together = ('parameter', 'unit_option', 'profile')
+        # TODO try remove 'unit_option'
+        # unique_together = ('parameter', 'unit_option', 'profile')
+
+        unique_together = ('parameter', 'profile')
 
     def __str__(self):
         return f'{self.profile} - {self.parameter} - unit option'
+
+    def targets(self, parameter_name):
+        """ Returns a namedtuple containing saved target, recommended target
+        based upon age and gender etc, and color rating to indicate how ideal
+        latest measurement for parameter is """
+        TargetData = namedtuple('target_data', ['saved', 'ideal'])
+        def age_from_birth_years():
+            return
+        age, gender, height = [getattr(self.profile, a, b) for a, b in [] ]
+        # or default...
+        ideal = CalcParamIdeal(parameter_name, self.profile).get_ideal()
+        return TargetData(self.target_value, ideal)
 
     @classmethod
     def get_unit_option(cls, profile, parameter):
@@ -49,6 +71,7 @@ class ProfileParamUnitOption(models.Model):
         excl_params = profile.summary_data().values_list('parameter')
         return cls.objects.filter(profile=profile).exclude(
             parameter__in=excl_params).all()
+
 
 
 @receiver(post_delete)

@@ -5,6 +5,7 @@ from .views.profile import (
 )
 from app.views.data_point.add_data_points import AddDataPoints
 from app.views.data_point.edit_data_points import EditDataPoints
+from app.views.data_point.qualifying_text import QualifyingTextCrudView
 from .views.csv_download import CsvDownloadView
 from .views.csv_upload import CsvUploadView
 from .views.user import (
@@ -22,6 +23,7 @@ urlpatterns = [
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('datapoints/add', AddDataPoints.as_view()),
     path('datapoints/edit', EditDataPoints.as_view()),
+    path('datapoints/qualifying-text', QualifyingTextCrudView.as_view()),
     path('datapoints/download', CsvDownloadView.as_view()),
     path('datapoints/upload', CsvUploadView.as_view()),
 

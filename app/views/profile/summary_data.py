@@ -49,7 +49,7 @@ class ProfileSummaryData(APIView):
             for i, obj in enumerate(summary_qs)]
 
         all_data = [{**{field: getattr(obj, field) for field in
-                        ['id', 'date', 'value', 'value2']},
+                        ['id', 'date', 'value', 'value2', 'qualifier']},
                      **{'parameter': obj.parameter.name,
                         'num_values': obj.parameter.num_values}}
                     for obj in profile.all_datapoints()]
