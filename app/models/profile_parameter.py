@@ -23,7 +23,7 @@ class ProfileParamUnitOption(models.Model):
     )
     profile = models.ForeignKey(
         'app.Profile',
-        related_name='param_unit_options',
+        related_name='profile_parameters',
         on_delete=models.CASCADE,
     )
     target_value = models.FloatField(
@@ -31,27 +31,26 @@ class ProfileParamUnitOption(models.Model):
         null=True,
         blank=True
     )
+    # target_value2 = models.FloatField(
+    #     max_length=6,
+    #     null=True,
+    #     blank=True
+    # )
 
     class Meta:
-        # TODO try remove 'unit_option'
-        # unique_together = ('parameter', 'unit_option', 'profile')
-
         unique_together = ('parameter', 'profile')
 
     def __str__(self):
         return f'{self.profile} - {self.parameter} - unit option'
 
-    def targets(self, parameter_name):
+    def targets(self, latest_val):
         """ Returns a namedtuple containing saved target, recommended target
         based upon age and gender etc, and color rating to indicate how ideal
         latest measurement for parameter is """
-        TargetData = namedtuple('target_data', ['saved', 'ideal'])
-        def age_from_birth_years():
-            return
-        age, gender, height = [getattr(self.profile, a, b) for a, b in [] ]
-        # or default...
-        ideal = CalcParamIdeal(parameter_name, self.profile).get_ideal()
-        return TargetData(self.target_value, ideal)
+        TargetData = namedtuple('target_data', ['saved', 'ideal', 'misc_data'])
+        ideal = CalcParamIdeal(self.parameter.name, self.profile, latest_val)
+        ideal_val = ideal.get_ideal()
+        return TargetData(self.target_value, ideal_val, ideal.misc_data)
 
     @classmethod
     def get_unit_option(cls, profile, parameter):
@@ -71,7 +70,6 @@ class ProfileParamUnitOption(models.Model):
         excl_params = profile.summary_data().values_list('parameter')
         return cls.objects.filter(profile=profile).exclude(
             parameter__in=excl_params).all()
-
 
 
 @receiver(post_delete)

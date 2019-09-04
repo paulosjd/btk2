@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from .user import User
@@ -24,6 +26,11 @@ class Profile(models.Model):
         default='',
         max_length=1
     )
+
+    @property
+    def age(self):
+        if self.birth_year:
+            return datetime.now().year - self.birth_year
 
     def __str__(self):
         return self.user.username + '_profile'

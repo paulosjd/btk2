@@ -44,6 +44,10 @@ class Parameter(models.Model):
         null=True,
         blank=True
     )
+    ideal_info = models.CharField(
+        max_length=160,
+        default=''
+    )
 
     objects = ParameterManager()
 

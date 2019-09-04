@@ -8,11 +8,13 @@ class ParameterSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     unit_name = serializers.CharField(required=False)
     unit_symbol = serializers.CharField(required=False)
+    ideal_info = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Parameter
         fields = (
             'name', 'upload_fields', 'upload_field_labels',
             'available_unit_options', 'unit_name', 'unit_symbol',
-            'num_values', *[f'value2_short_label_{i}' for i in [1, 2]]
+            'num_values', 'ideal_info',
+            *[f'value2_short_label_{i}' for i in [1, 2]]
         )

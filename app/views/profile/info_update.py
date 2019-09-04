@@ -13,7 +13,7 @@ class ProfileInfoUpdate(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        field_names = [('birth_year', 0), ('gender', '')]
+        field_names = [('birth_year', 0), ('gender', ''), ('height', 0)]
         req_data = {a: request.data.get(a, b) for a, b in field_names}
         profile_data = {a: b if not req_data[a] and req_data[a] != b
                         else req_data[a] for a, b in field_names}
@@ -22,6 +22,5 @@ class ProfileInfoUpdate(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        print(serializer.errors)
         return Response({'status': 'Bad request'},
                         status=status.HTTP_400_BAD_REQUEST)
