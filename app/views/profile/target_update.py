@@ -14,13 +14,18 @@ class TargetUpdateView(APIView):
         post_data = request.data.get('value', {})
         param_name, target_value = [post_data.get(s) for s in
                                     ['param_name', 'target_value']]
-        if not param_name or not target_value:
+        if not param_name or target_value is None:
             return self.json_response(profile)
-        try:
-            target_value = round(float(target_value), 1)
-        except ValueError:
-            return self.json_response(profile)
+
+        if target_value == '':
+            target_value = None
+        else:
+            try:
+                target_value = round(float(target_value), 1)
+            except ValueError:
+                return self.json_response(profile)
         parameter = get_object_or_404(Parameter.objects, name=param_name)
+
         try:
             record = ProfileParamUnitOption.objects.get(
                 profile=profile, parameter=parameter
@@ -30,6 +35,7 @@ class TargetUpdateView(APIView):
             record = ProfileParamUnitOption.objects.get(
                 profile=profile, parameter=parameter, target_value=target_value
             )
+
         record.save()
         return self.json_response(profile)
 
