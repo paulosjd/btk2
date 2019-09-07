@@ -6,13 +6,14 @@ from app.models import Parameter, ProfileParamUnitOption
 from app.serializers import (
     DataPointSerializer, ParameterSerializer, SummaryDataSerializer)
 from app.utils.calc_param_ideal import CalcParamIdeal
+from app.utils.view_helpers import get_summary_data, param_unit_opt_dct
 
 
 class ProfileSummaryData(APIView):
     date_formats = ['YYYY/MM/DD', 'YYYY-MM-DD', 'YY/MM/DD', 'YY-MM-DD',
                     'DD/MM/YYYY', 'DD-MM-YYYY', 'DD/MM/YY', 'DD-MM-YYround']
     param_fields = ['name', 'upload_fields', 'upload_field_labels',
-                    'ideal_info', 'available_unit_options', ]
+                    'ideal_info', 'ideal_info_url', 'available_unit_options', ]
     opt_fields = ['num_values'] + [f'value2_short_label_{i}' for i in [1, 2]]
 
     def get(self, request):
@@ -27,7 +28,7 @@ class ProfileSummaryData(APIView):
                 'blank_params':
                     [{**{field: getattr(obj.parameter, field)
                          for field in self.param_fields},
-                      **self.param_unit_opt_dct(obj.unit_option)}
+                      **param_unit_opt_dct(obj.unit_option)}
                      for obj in null_data_params],
             })
             self.update_with_ideals_data(resp_data, profile)
@@ -37,19 +38,6 @@ class ProfileSummaryData(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializers(self, profile):
-        summary_qs = profile.summary_data()
-        sum_data = [{
-            'parameter': {
-                **{field: getattr(obj.parameter, field)
-                   for field in self.param_fields[:4] + self.opt_fields[:3]},
-                **self.param_unit_opt_dct(
-                    ProfileParamUnitOption.get_unit_option(
-                        profile, summary_qs[i].parameter)
-                )},
-            'data_point': {field: getattr(obj, field)
-                           for field in ['date', 'value', 'value2']},
-        } for i, obj in enumerate(summary_qs)]
-
         all_data = [{**{field: getattr(obj, field) for field in
                         ['id', 'date', 'value', 'value2', 'qualifier']},
                      **{'parameter': obj.parameter.name,
@@ -62,15 +50,10 @@ class ProfileSummaryData(APIView):
         ]
 
         return (
-            SummaryDataSerializer(data=sum_data, many=True),
+            SummaryDataSerializer(data=get_summary_data(profile), many=True),
             ParameterSerializer(data=avail_params, many=True),
             DataPointSerializer(data=all_data, many=True)
         )
-
-    @staticmethod
-    def param_unit_opt_dct(unit_opt):
-        return {f'unit_{field}': getattr(unit_opt, field)
-                for field in ['symbol', 'name', ]}
 
     @staticmethod
     def update_with_ideals_data(resp_data, profile):

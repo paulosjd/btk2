@@ -48,6 +48,10 @@ class Parameter(models.Model):
         max_length=160,
         default=''
     )
+    ideal_info_url = models.CharField(
+        max_length=240,
+        default=''
+    )
 
     objects = ParameterManager()
 

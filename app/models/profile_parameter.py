@@ -60,8 +60,6 @@ class ProfileParamUnitOption(models.Model):
             ).unit_option
         except cls.DoesNotExist:
             logging.error(f'ProfileParamUnitOption not exist for {parameter}')
-        except cls.MultipleObjectsReturned:
-            logging.error(f'ProfileParamUnitOpt multiple recs for {parameter}')
         logging.info(f'get unit option returned: {parameter.name}')
         return UnitOption.get_default_for_param(parameter)
 
