@@ -67,6 +67,7 @@ class ProfileSummaryData(APIView):
             except ProfileParamUnitOption.DoesNotExist:
                 param_ideal = CalcParamIdeal(param_name, profile)
                 target_data = {'saved': None,
+                               'saved2': None,
                                'ideal': param_ideal.get_ideal(),
                                'misc_info': param_ideal.misc_data}
             else:
@@ -74,6 +75,7 @@ class ProfileSummaryData(APIView):
                     obj['data_point']['value']
                 )
                 target_data = {'saved': target_obj.saved,
+                               'saved2': target_obj.saved2,
                                'ideal': target_obj.ideal,
                                'misc_info': target_obj.misc_data}
             resp_data['ideals'].append(target_data)

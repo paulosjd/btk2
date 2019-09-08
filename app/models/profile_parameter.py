@@ -31,11 +31,11 @@ class ProfileParamUnitOption(models.Model):
         null=True,
         blank=True
     )
-    # target_value2 = models.FloatField(
-    #     max_length=6,
-    #     null=True,
-    #     blank=True
-    # )
+    target_value2 = models.FloatField(
+        max_length=6,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         unique_together = ('parameter', 'profile')
@@ -47,10 +47,12 @@ class ProfileParamUnitOption(models.Model):
         """ Returns a namedtuple containing saved target, recommended target
         based upon age and gender etc, and color rating to indicate how ideal
         latest measurement for parameter is """
-        TargetData = namedtuple('target_data', ['saved', 'ideal', 'misc_data'])
+        TargetData = namedtuple('target_data',
+                                ['saved', 'saved2', 'ideal', 'misc_data'])
         ideal = CalcParamIdeal(self.parameter.name, self.profile, latest_val)
         ideal_val = ideal.get_ideal()
-        return TargetData(self.target_value, ideal_val, ideal.misc_data)
+        return TargetData(self.target_value, self.target_value2, ideal_val,
+                          ideal.misc_data)
 
     @classmethod
     def get_unit_option(cls, profile, parameter):
