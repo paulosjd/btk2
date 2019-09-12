@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from app.models.unit_option import Parameter, UnitOption
+from app.models.unit_option import UnitOption
 from app.utils.calc_param_ideal import CalcParamIdeal
 
 log = logging.getLogger(__name__)
@@ -47,12 +47,13 @@ class ProfileParamUnitOption(models.Model):
         """ Returns a namedtuple containing saved target, recommended target
         based upon age and gender etc, and color rating to indicate how ideal
         latest measurement for parameter is """
-        TargetData = namedtuple('target_data',
-                                ['saved', 'saved2', 'ideal', 'misc_data'])
+        TargetData = namedtuple(
+            'target_data',
+            ['saved', 'saved2', 'misc_data', 'ideal', 'required_field'])
         ideal = CalcParamIdeal(self.parameter.name, self.profile, latest_val)
         ideal_val = ideal.get_ideal()
-        return TargetData(self.target_value, self.target_value2, ideal_val,
-                          ideal.misc_data)
+        return TargetData(self.target_value, self.target_value2,
+                          ideal.misc_data, ideal_val, ideal.required_field)
 
     @classmethod
     def get_unit_option(cls, profile, parameter):

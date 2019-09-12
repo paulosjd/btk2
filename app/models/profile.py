@@ -43,6 +43,10 @@ class Profile(models.Model):
         return self.user_datapoints.order_by(
             'parameter', '-date').distinct('parameter')
 
+    def param_unit_options(self):
+        return self.unit_options.order_by(
+            'parameter').distinct('parameter')
+
     @classmethod
     def create_demo_user(cls):
         cls.objects.create(is_temporary=True)

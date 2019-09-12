@@ -3,7 +3,8 @@ from app.models import ProfileParamUnitOption
 
 def param_unit_opt_dct(unit_opt):
     return {f'unit_{field}': getattr(unit_opt, field)
-            for field in ['symbol', 'name', ]}
+            for field in ['symbol', 'name', 'param_default',
+                          'conversion_factor']}
 
 
 def get_summary_data(profile):

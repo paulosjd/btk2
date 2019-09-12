@@ -10,6 +10,7 @@ class ParameterSerializer(serializers.ModelSerializer):
     unit_symbol = serializers.CharField(required=False)
     ideal_info = serializers.CharField(required=False, allow_blank=True)
     ideal_info_url = serializers.CharField(required=False, allow_blank=True)
+    num_values = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Parameter

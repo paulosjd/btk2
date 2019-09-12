@@ -9,6 +9,9 @@ from app.utils.calc_param_ideal import CalcParamIdeal
 
 class TargetUpdateView(APIView):
 
+    def get(self, request):
+        return self.json_response(request.user.profile)
+
     def post(self, request):
         profile = request.user.profile
         post_data = request.data.get('value', {})

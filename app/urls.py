@@ -18,7 +18,7 @@ urlpatterns = [
     path('users/help/<forgot>', LoginHelp.as_view()),
     path('users/password-reset', PasswordReset.as_view()),
 
-    path('profile/summary', ProfileSummaryData.as_view()),
+    path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
     path('profile/menu-item-add', MenuItemAdd.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('profile/target-update', TargetUpdateView.as_view()),
