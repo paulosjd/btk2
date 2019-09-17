@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import Parameter, ProfileParamUnitOption
+from app.models import Parameter, ProfileParamUnitOption, UnitOption
 from app.serializers import (
     DataPointSerializer, ParameterSerializer, SummaryDataSerializer)
 from app.utils.calc_param_ideal import CalcParamIdeal
@@ -27,11 +27,11 @@ class ProfileSummaryData(APIView):
         if all([ser.is_valid() for ser in serializers.values()]):
             resp_data = {k: v.data for k, v in serializers.items()}
             null_data_params = ProfileParamUnitOption.null_data_params(profile)
-
-            non_blank_param_names = [a.get('parameter', {}).get('name', '')
-                                     for a in resp_data['profile_summary']]
-            print(non_blank_param_names)
-            print([a.parameter.name for a in null_data_params])
+            #
+            # non_blank_param_names = [a.get('parameter', {}).get('name', '')
+            #                          for a in resp_data['profile_summary']]
+            # print(non_blank_param_names)
+            # print([a.parameter.name for a in null_data_params])
 
             resp_data.update({
                 'date_formats': self.date_formats,
@@ -71,17 +71,20 @@ class ProfileSummaryData(APIView):
         ProfileParamObj = namedtuple('profile_param_obj',
                                      ['param_name', 'pp_unit_option'])
 
-        Item = namedtuple('UnitOptLookupData', ['param_name', 'value'])
+        Item = namedtuple('UnitOptLookupData',
+                          ['param_name', 'value', 'value2'])
         profile_summary_items = [Item(obj['parameter']['name'],
-                                      obj['data_point']['value'])
+                                      obj['data_point']['value'],
+                                      obj['data_point']['value2'])
                                  for obj in resp_data['profile_summary']]
-        blank_param_items = [Item(obj['name'], None)
+        for obj in resp_data['profile_summary']:
+            print(obj['data_point']['value2'])
+        blank_param_items = [Item(obj['name'], None, None)
                              for obj in resp_data['blank_params']]
         profile_params = profile_summary_items + blank_param_items
-        for obj in profile_params:
-            print(obj.param_name)
 
         for obj in profile_params:
+            print(obj)
             try:
                 profile_param = ProfileParamUnitOption.objects.get(
                     parameter__name=obj.param_name, profile=profile
@@ -89,20 +92,26 @@ class ProfileSummaryData(APIView):
             except ProfileParamUnitOption.DoesNotExist:
                 profile_param = None
                 param_ideal = CalcParamIdeal(obj.param_name, profile)
-                ideal_val = param_ideal.get_ideal()
+                ideal_data = param_ideal.get_ideal_data()
                 target_data = {'saved': None,
                                'saved2': None,
-                               'ideal': ideal_val,
                                'missing_field': param_ideal.required_field,
-                               'misc_info': param_ideal.misc_data}
+                               'misc_info': param_ideal.misc_data,
+                               'param_name': obj.param_name}
+                target_data.update({
+                    k: ideal_data.get(k, '') for k in
+                    ['ideal', 'ideal2', 'ideal_prepend', 'ideal2_prepend']
+                })
             else:
-                target_obj = profile_param.targets(obj.value)
-                target_data = {'saved': target_obj.saved,
-                               'saved2': target_obj.saved2,
-                               'ideal': target_obj.ideal,
-                               'missing_field': target_obj.required_field,
-                               'misc_info': target_obj.misc_data}
-
+                target_obj = profile_param.targets(obj.value, obj.value2)
+                target_data = {'missing_field': target_obj.required_field,
+                               'misc_info': target_obj.misc_data,
+                               'param_name': obj.param_name}
+                target_data.update({
+                    k: getattr(target_obj, k) for k in
+                    ['saved', 'saved2', 'ideal', 'ideal2', 'ideal_prepend',
+                     'ideal2_prepend']
+                })
             resp_data['ideals'].append(target_data)
             self.profile_params.append(
                 ProfileParamObj(obj.param_name, profile_param)
@@ -116,10 +125,9 @@ class ProfileSummaryData(APIView):
                 continue
             pp_unit_info = {}
             if obj.pp_unit_option:
-                pp_unit_info = {k: getattr(obj.pp_unit_option.unit_option, k)
-                                for k in ['param_default', 'conversion_factor',
-                                          'symbol']}  # TODO dont need symbol
-                # for k in ['param_default', 'conversion_factor', 'symbol']}
-
+                pp_unit_info = {
+                    k: getattr(obj.pp_unit_option.unit_option, k)
+                    for k in ['param_default', 'conversion_factor', 'symbol']
+                }
             resp_data['unit_info'].append(pp_unit_info)
             added_item_names.append(obj.param_name)

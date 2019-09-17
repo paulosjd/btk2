@@ -59,7 +59,9 @@ class TargetUpdateView(APIView):
     @staticmethod
     def json_response(profile):
         resp_data = []
-        for obj in profile.summary_data():
+        obj_list = [a for a in profile.summary_data()] + [
+            a for a in ProfileParamUnitOption.null_data_params(profile)]
+        for obj in obj_list:
             param_name = obj.parameter.name
             try:
                 profile_param = ProfileParamUnitOption.objects.get(
@@ -69,14 +71,18 @@ class TargetUpdateView(APIView):
                 param_ideal = CalcParamIdeal(param_name, profile)
                 target_data = {'saved': None,
                                'saved2': None,
-                               'ideal': param_ideal.get_ideal(),
-                               'misc_info': param_ideal.misc_data}
+                               'ideal': param_ideal.get_ideal_data(),
+                               'missing_field': param_ideal.required_field,
+                               'misc_info': param_ideal.misc_data,
+                               'param_name': param_name}
             else:
-                target_obj = profile_param.targets(obj.value)
+                target_obj = profile_param.targets(getattr(obj, 'value', None))
                 target_data = {'saved': target_obj.saved,
                                'saved2': target_obj.saved2,
                                'ideal': target_obj.ideal,
-                               'misc_info': target_obj.misc_data}
+                               'missing_field': target_obj.required_field,
+                               'misc_info': target_obj.misc_data,
+                               'param_name': param_name}
             resp_data.append(target_data)
 
         return Response(resp_data, status=status.HTTP_200_OK)

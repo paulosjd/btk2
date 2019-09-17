@@ -16,11 +16,15 @@ class BaseDataPointsView(APIView):
         raise NotImplementedError
 
     def json_response(self):
-        all_data = [{**{field: getattr(obj, field) for field in
-                        ['id', 'date', 'value', 'value2', 'qualifier']},
-                     **{'parameter': obj.parameter.name,
-                        'num_values': obj.parameter.num_values}}
-                    for obj in self.request.user.profile.all_datapoints()]
+        all_data = [
+            {**{field: getattr(obj, field) for field in
+                ['id', 'date', 'value', 'value2', 'qualifier']},
+             **{'parameter': obj.parameter.name,
+                'num_values': obj.parameter.num_values,
+                'value2_short_label_1': obj.parameter.value2_short_label_1,
+                'value2_short_label_2': obj.parameter.value2_short_label_2}}
+            for obj in self.request.user.profile.all_datapoints()
+        ]
 
         serializer = self.serializer_class(data=all_data, many=True)
         if serializer.is_valid():

@@ -7,6 +7,5 @@ class User(AbstractUser):
         default=False
     )
 
-
     class Meta:
         db_table = 'auth_user'

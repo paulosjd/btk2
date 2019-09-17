@@ -16,6 +16,7 @@ class UnitOption(models.Model):
         help_text='Label e.g. lb'
     )
     conversion_factor = models.FloatField(
+        default=1,
         max_length=10,
         help_text='Enables conversion to and from the default unit of '
                   'measurement; can be negative'

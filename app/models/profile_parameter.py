@@ -43,17 +43,23 @@ class ProfileParamUnitOption(models.Model):
     def __str__(self):
         return f'{self.profile} - {self.parameter} - unit option'
 
-    def targets(self, latest_val):
+    def targets(self, latest_val, latest_val2=None):
         """ Returns a namedtuple containing saved target, recommended target
         based upon age and gender etc, and color rating to indicate how ideal
         latest measurement for parameter is """
-        TargetData = namedtuple(
-            'target_data',
-            ['saved', 'saved2', 'misc_data', 'ideal', 'required_field'])
-        ideal = CalcParamIdeal(self.parameter.name, self.profile, latest_val)
-        ideal_val = ideal.get_ideal()
-        return TargetData(self.target_value, self.target_value2,
-                          ideal.misc_data, ideal_val, ideal.required_field)
+        fields = ['saved', 'saved2', 'misc_data', 'required_field', 'ideal',
+                  'ideal2', 'ideal_prepend', 'ideal2_prepend']
+        TargetData = namedtuple('target_data', fields)
+        ideal = CalcParamIdeal(
+            self.parameter.name, self.profile, latest_val, latest_val2,
+            unit_is_default=self.unit_option.param_default,
+            con_factor=self.unit_option.conversion_factor
+        )
+        ideal_data = ideal.get_ideal_data()
+        return TargetData(
+            self.target_value, self.target_value2, ideal.misc_data,
+            ideal.required_field, *[ideal_data.get(k, '') for k in fields[-4:]]
+        )
 
     @classmethod
     def get_unit_option(cls, profile, parameter):
