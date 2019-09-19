@@ -36,6 +36,10 @@ class ProfileParamUnitOption(models.Model):
         null=True,
         blank=True
     )
+    color_hex = models.CharField(
+        max_length=10,
+        default=''
+    )
 
     class Meta:
         unique_together = ('parameter', 'profile')

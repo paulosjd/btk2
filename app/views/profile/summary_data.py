@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import Parameter, ProfileParamUnitOption, UnitOption
+from app.models import Parameter, ProfileParamUnitOption
 from app.serializers import (
     DataPointSerializer, ParameterSerializer, SummaryDataSerializer)
 from app.utils.calc_param_ideal import CalcParamIdeal
@@ -77,14 +77,11 @@ class ProfileSummaryData(APIView):
                                       obj['data_point']['value'],
                                       obj['data_point']['value2'])
                                  for obj in resp_data['profile_summary']]
-        for obj in resp_data['profile_summary']:
-            print(obj['data_point']['value2'])
         blank_param_items = [Item(obj['name'], None, None)
                              for obj in resp_data['blank_params']]
         profile_params = profile_summary_items + blank_param_items
 
         for obj in profile_params:
-            print(obj)
             try:
                 profile_param = ProfileParamUnitOption.objects.get(
                     parameter__name=obj.param_name, profile=profile
@@ -129,5 +126,9 @@ class ProfileSummaryData(APIView):
                     k: getattr(obj.pp_unit_option.unit_option, k)
                     for k in ['param_default', 'conversion_factor', 'symbol']
                 }
+                pp_unit_info.update({
+                    'color_hex': obj.pp_unit_option.color_hex,
+                    'param_name': obj.param_name
+                })
             resp_data['unit_info'].append(pp_unit_info)
             added_item_names.append(obj.param_name)
