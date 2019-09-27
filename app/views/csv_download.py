@@ -20,17 +20,20 @@ class CsvDownloadView(APIView):
         :param request: dict, if key 'meta' provided this is must be a dict
         :return: DRF Response object
         """
-        date_fmt, param_names = [request.data.get(s) for s in ['date_fmt', 'fields']]
+        date_fmt, param_names = [request.data.get(s) for s in
+                                 ['date_fmt', 'fields']]
         date_fmt = Parameter.date_fmt_opts_map.get(date_fmt)
         profile = request.user.profile
 
         if date_fmt and param_names:
-            parameters = [Parameter.objects.get(name=field) for field in param_names]
+            parameters = [Parameter.objects.get(name=field)
+                          for field in param_names]
             header_labels = self.get_headers_labels(parameters)
             rows = self.get_rows(parameters, date_fmt)
 
             response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="profile_data.csv"'
+            response['Content-Disposition'] = \
+                f'attachment; filename="{profile.user.username}_data.csv"'
             writer = csv.writer(response)
             writer.writerow(header_labels)
             for row in rows:
@@ -38,8 +41,10 @@ class CsvDownloadView(APIView):
 
             return response
 
-        log.error(f'CsvDownload bad request. date_fmt: {date_fmt} param_names: {param_names} profile: {profile}')
-        return Response({'error': 'Bad request'}, status=status.HTTP_400_BAD_REQUEST)
+        log.error(f'CsvDownload bad request. date_fmt: {date_fmt} '
+                  f'param_names: {param_names} profile: {profile}')
+        return Response({'error': 'Bad request'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     def get_headers_labels(self, parameters):
         """ Returns data for use by csv writer
@@ -50,10 +55,15 @@ class CsvDownloadView(APIView):
         first = True
 
         for parameter in parameters:
-            unit_option = ProfileParamUnitOption.get_unit_option(self.request.user.profile, parameter)
-            param_labels = [f"{a.title().rstrip('s')} ({unit_option.symbol})"
-                            if ind != 0 else a.title().rstrip('s')
-                            for ind, a in enumerate(parameter.upload_field_labels.split(', '))]
+            unit_option = ProfileParamUnitOption.get_unit_option(
+                self.request.user.profile, parameter
+            )
+            param_labels = [
+                f"{a.title().rstrip('s')} ({unit_option.symbol})"
+                if ind != 0 else a.title().rstrip('s')
+                for ind, a in enumerate(
+                    parameter.upload_field_labels.split(', '))
+            ]
             if not first:
                 param_labels.insert(0, '')
             first = False
@@ -61,21 +71,26 @@ class CsvDownloadView(APIView):
 
         return header_labels
 
-    def get_rows(self, parameters, date_fmt):
+    def get_rows(self, parameters, dt_fmt):
         """ Returns data to be used by csv writer
         :param parameters: list of Parameter objects
-        :param date_fmt: string which specifies datetime string formatting
+        :param dt_fmt: string which specifies datetime string formatting
         :return: list of lists containing strings
         """
         rows = []
         param_cols = {}
 
         for parameter in parameters:
-            param_dpts = DataPoint.objects.filter(profile=self.request.user.profile, parameter=parameter).all()
-            param_sub_rows = [[getattr(a, field) for field in parameter.upload_fields.split(', ')]
-                              for a in param_dpts]
+            param_dpts = DataPoint.objects.filter(
+                profile=self.request.user.profile, parameter=parameter
+            ).all()
+            param_sub_rows = [
+                [getattr(a, field)
+                 for field in parameter.upload_fields.split(', ')]
+                for a in param_dpts
+            ]
             for ind, ps in enumerate(param_sub_rows):
-                param_sub_rows[ind][0] = param_sub_rows[ind][0].strftime(date_fmt)
+                param_sub_rows[ind][0] = param_sub_rows[ind][0].strftime(dt_fmt)
             param_cols[parameter.name] = param_sub_rows
 
         max_col_len = max([len(i) for i in param_cols.values()])

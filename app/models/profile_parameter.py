@@ -37,8 +37,17 @@ class ProfileParamUnitOption(models.Model):
         blank=True
     )
     color_hex = models.CharField(
-        max_length=10,
-        default=''
+        max_length=30,
+        default='',
+        blank=True
+    )
+    color_range_val_1 = models.IntegerField(
+        default=10,
+        blank=True
+    )
+    color_range_val_2 = models.IntegerField(
+        default=20,
+        blank=True
     )
 
     class Meta:

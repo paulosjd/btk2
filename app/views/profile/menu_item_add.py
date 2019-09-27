@@ -33,15 +33,5 @@ class MenuItemAdd(APIView):
 
             return HttpResponseRedirect(reverse('summary'))
 
-
-
-            # param_fields = ['name', 'upload_fields', 'upload_field_labels',
-            #                 'available_unit_options', 'num_values',
-            #                 'ideal_info', 'ideal_info_url',
-            #                 *[f'value2_short_label_{i}' for i in [1, 2]]]
-            # mitm = {**{s: getattr(obj.parameter, s) for s in param_fields},
-            #         **param_unit_opt_dct(obj.unit_option)}
-            # return Response(mitm, status=status.HTTP_200_OK)
-
         return Response({'error': error_msg},
                         status=status.HTTP_400_BAD_REQUEST)

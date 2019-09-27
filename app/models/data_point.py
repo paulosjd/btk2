@@ -89,7 +89,8 @@ class DataPoint(models.Model):
             record = cls.objects.filter(
                 **{k: kwargs[k] for k in kwargs if k in uc_fields}
             ).first()
-        except KeyError:
+        except KeyError as e:
+            log.error(e)
             return
         if not record:
             fields = uc_fields + kwargs['parameter'].upload_fields.split(', ')
@@ -97,7 +98,8 @@ class DataPoint(models.Model):
                 cls.objects.create(
                     **{k: v for k, v in kwargs.items() if k in fields}
                 )
-            except (ValidationError, IntegrityError):
+            except (ValidationError, IntegrityError) as e:
+                log.error(e)
                 return
         else:
             for k, v in kwargs.items():

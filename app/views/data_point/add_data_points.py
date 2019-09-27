@@ -1,7 +1,10 @@
+import logging
 from datetime import datetime
 
 from app.models import DataPoint, Parameter
 from .dp_base import BaseDataPointsView
+
+log = logging.getLogger(__name__)
 
 
 class AddDataPoints(BaseDataPointsView):
@@ -13,9 +16,12 @@ class AddDataPoints(BaseDataPointsView):
 
         if form_data and parameter:
             self.process_post_data(form_data, parameter)
+        else:
+            log.debug('"form_data and parameter" condition unmet')
         return self.json_response()
 
     def process_post_data(self, form_data, parameter):
+
         param_fields = parameter.upload_fields.split(', ')
         row_nums = set([k.split('_')[0] for k in form_data.keys()
                         if k and k.split('_')[0].isdigit()])
@@ -23,7 +29,9 @@ class AddDataPoints(BaseDataPointsView):
             try:
                 dp_data = {field: form_data[f'{num}_{field}']
                            for field in param_fields + ['date']}
-            except KeyError:
+            except KeyError as e:
+                log.error(e)
+                print(e)
                 continue
             for k, v in dp_data.items():
                 try:
