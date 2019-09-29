@@ -1,8 +1,8 @@
 from django.urls import path
 
 from .views.profile import (
-    MenuItemAdd, ProfileInfoUpdate, ProfileSummaryData, TargetUpdateView,
-    ParamColorsUpdateView
+    CustomMetricAdd, MenuItemAdd, ProfileInfoUpdate, ProfileSummaryData,
+    TargetUpdateView, ParamColorsUpdateView
 )
 from app.views.data_point.add_data_points import AddDataPoints
 from app.views.data_point.edit_data_points import EditDataPoints
@@ -13,14 +13,17 @@ from .views.user import (
     LoginHelp, PasswordReset, RegistrationAPIView, DemoRegistrationAPIView
 )
 
+
 urlpatterns = [
-    path('users/demo/registration', DemoRegistrationAPIView.as_view()),
+    path('users/demo/registration', DemoRegistrationAPIView.as_view()
+         ),
     path('users/registration', RegistrationAPIView.as_view()),
     path('users/help/<forgot>', LoginHelp.as_view()),
     path('users/password-reset', PasswordReset.as_view()),
 
     path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
     path('profile/menu-item-add', MenuItemAdd.as_view()),
+    path('profile/custom-metric-add', CustomMetricAdd.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('profile/target-update', TargetUpdateView.as_view()),
     path('profile/param-colors', ParamColorsUpdateView.as_view()),

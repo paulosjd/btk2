@@ -1,5 +1,6 @@
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import Q
 
 from .managers.parameter_manager import ParameterManager
 
@@ -79,5 +80,13 @@ class Parameter(models.Model):
             raise ValidationError('split upload_field_labels and '
                                   'num_values + 1 do not match up')
         super(Parameter, self).save(**kwargs)
+
+    @classmethod
+    def create_custom_metric(cls, profile, param_name, unit_symbol):
+        # Validate param_name and return error message if necessary
+        if cls.objects.filter(Q(metic_name=param_name) | Q(
+                profile=profile, custom_param_name=param_name)).all():
+            return False, 'Parameter name already exists'
+
 
 

@@ -44,7 +44,6 @@ class ProfileSummaryData(APIView):
             self.update_with_ideals_data(resp_data, profile)
             self.update_with_units_options(resp_data)
             self.update_with_rolling_means(resp_data)
-            log.info(resp_data['rolling_means'])
             return Response(resp_data, status=status.HTTP_200_OK)
         return Response({'status': 'Bad request',
                          'errors': serializers['profile_summary'].errors},
