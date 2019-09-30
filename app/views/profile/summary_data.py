@@ -59,6 +59,9 @@ class ProfileSummaryData(APIView):
             {field: getattr(obj, field) for field in self.param_fields}
             for obj in Parameter.objects.all()
         ]
+        # Change to Profile.available_params # property returns qs parameters.object.filter(is_admin=True) combined self.custom_parameters.all()
+        # Every Parameter.objects.all() and UnitOption.objects.all()  - combined with user custom_parameters
+
         return (
             SummaryDataSerializer(data=get_summary_data(profile), many=True),
             ParameterSerializer(data=avail_params, many=True),

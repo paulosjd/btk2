@@ -2,14 +2,15 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from .managers.unit_option_manager import UnitOptionManager
 from .parameter import Parameter
 
 
 class UnitOption(models.Model):
-    """ Represents unit of measurement """
+    """ Represents a unit of measurement """
     name = models.CharField(
         max_length=100,
-        help_text='Label e.g. pounds'
+        help_text='Label e.g. pounds',
     )
     symbol = models.CharField(
         max_length=8,
@@ -29,9 +30,19 @@ class UnitOption(models.Model):
         related_name='unit_choices',
         on_delete=models.CASCADE,
     )
+    is_builtin = models.BooleanField(
+        default=False,
+        help_text="Denotes if is non-custom/built-in metric for tracking"
+    )
+    profile = models.ForeignKey(
+        'app.Profile',
+        on_delete=models.CASCADE,
+        related_name='custom_unit_options',
+    )
+    objects = UnitOptionManager()
 
     class Meta:
-        unique_together = ('parameter', 'name', )
+        unique_together = ('parameter', 'name')
         ordering = ('-param_default', 'name', )
 
     def __str__(self):
@@ -44,7 +55,8 @@ class UnitOption(models.Model):
         if self.param_default:
             try:
                 unit_opt = UnitOption.objects.get(
-                    param_default=True, parameter=self.parameter)
+                    param_default=True, parameter=self.parameter,
+                    profile=self.profile)
                 unit_opt.param_default = False
                 unit_opt.save()
             except UnitOption.DoesNotExist:
@@ -58,12 +70,24 @@ class UnitOption(models.Model):
 
 @receiver(post_save, sender=Parameter)
 def create_unit_option(sender, instance, created, **kwargs):
-    """ Creates a Profile instance when a User instance is created """
+    """ Creates a UnitOption instance when a Parameter instance is created """
+    print('create_unit_option run!')
     if created:
-        UnitOption.objects.create(
-            name=f'todo unit opt name for {instance.name}',
-            symbol='todo',
+        kwargs = dict(
             conversion_factor=1,
             param_default=True,
-            parameter=instance
+            parameter=instance,
+            profile=instance.profile
         )
+        if instance.is_builtin:
+            UnitOption.objects.create(
+                name=f'todo unit opt name for {instance.name}',
+                symbol='todo',
+                **kwargs
+            )
+        else:
+            UnitOption.objects.create(
+                name=f'{instance.name} units',
+                symbol=instance.custom_symbol,
+                **kwargs
+            )

@@ -6,16 +6,11 @@ from .managers.parameter_manager import ParameterManager
 
 
 class Parameter(models.Model):
-    date_fmt_opts_map = dict(zip(
-        ['YYYY/MM/DD', 'YYYY-MM-DD', 'YY/MM/DD', 'YY-MM-DD',
-         'DD/MM/YYYY', 'DD-MM-YYYY', 'DD/MM/YY', 'DD-MM-YY'],
-        ['%Y/%m/%d', '%Y-%m-%d', '%y/%m/%d', '%y-%m-%d',
-         '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%d-%m-%y']
-    ))
+    """ Built-in have admin level profile, rest are custom for a profile """
+
     name = models.CharField(
         max_length=50,
         help_text='e.g. Body weight',
-        unique=True,
     )
     upload_fields = models.CharField(
         max_length=100,
@@ -48,14 +43,32 @@ class Parameter(models.Model):
     )
     ideal_info = models.CharField(
         max_length=160,
-        default=''
+        default='',
+        blank=True
     )
     ideal_info_url = models.CharField(
         max_length=240,
-        default=''
+        default='',
+        blank=True
     )
-
+    is_builtin = models.BooleanField(
+        default=False,
+        help_text="Denotes if is non-custom/built-in metric for tracking"
+    )
+    profile = models.ForeignKey(
+        'app.Profile',
+        on_delete=models.CASCADE,
+        related_name='custom_parameters',
+    )
+    custom_symbol = models.CharField(
+        max_length=8,
+        default='',
+        blank=True
+    )
     objects = ParameterManager()
+
+    class Meta:
+        unique_together = ('name', 'profile')
 
     @property
     def available_unit_options(self):
@@ -88,5 +101,10 @@ class Parameter(models.Model):
                 profile=profile, custom_param_name=param_name)).all():
             return False, 'Parameter name already exists'
 
-
+    date_fmt_opts_map = dict(zip(
+        ['YYYY/MM/DD', 'YYYY-MM-DD', 'YY/MM/DD', 'YY-MM-DD',
+         'DD/MM/YYYY', 'DD-MM-YYYY', 'DD/MM/YY', 'DD-MM-YY'],
+        ['%Y/%m/%d', '%Y-%m-%d', '%y/%m/%d', '%y-%m-%d',
+         '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%d-%m-%y']
+    ))
 

@@ -1,61 +1,13 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
-from .forms import ParameterAdminForm
+from .forms import (
+    CustomParameterFilter, CustomParameterUnitsFilter, CustomUserAdmin,
+    DatapointParamFilter, ParameterAdminForm, ProfileParamUnitOptionFilter,
+    UnitOptionAdminForm,
+)
 from .models import (
     DataPoint, Parameter, Profile, UnitOption, ProfileParamUnitOption, User
 )
-
-
-class DatapointParamFilter(admin.SimpleListFilter):
-    title = 'Parameter (by Profile="dev")'
-    parameter_name = 'id'
-
-    def lookups(self, request, model_admin):
-        return [(a.id, a.name) for a in
-                Parameter.objects.order_by('name').distinct()]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            profile = Profile.objects.filter(user__username='dev').first()
-            return queryset.filter(parameter__id=self.value(),
-                                   profile=profile)
-        return queryset.all()
-
-
-class ProfileParamUnitOptionFilter(admin.SimpleListFilter):
-    title = 'Unit Option (by Profile="dev")'
-    parameter_name = 'id'
-
-    def lookups(self, request, model_admin):
-        return [(a.id, a.name) for a in
-                UnitOption.objects.order_by('symbol').distinct()]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            profile = Profile.objects.filter(user__username='dev').first()
-            return queryset.filter(unit_option__id=self.value(),
-                                   profile=profile)
-        return queryset.all()
-
-
-class CustomUserAdmin(UserAdmin):
-    # add_form = UserCreationForm
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2',
-                       'is_temporary')}
-         ),
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        UserAdmin.list_display = (
-            'username', 'email', 'first_name', 'last_name', 'is_staff',
-            'is_temporary'
-        )
-
 
 admin.site.register(User, CustomUserAdmin)
 
@@ -69,6 +21,12 @@ class DataPointAdmin(admin.ModelAdmin):
 @admin.register(Parameter)
 class ParameterAdmin(admin.ModelAdmin):
     form = ParameterAdminForm
+    list_filter = [CustomParameterFilter]
+
+    def get_queryset(self, request):
+        if request.GET:
+            return self.model.objects.unfiltered().all()
+        return self.model.objects.all()
 
 
 @admin.register(Profile)
@@ -83,4 +41,10 @@ class ProfileParamUnitOptionAdmin(admin.ModelAdmin):
 
 @admin.register(UnitOption)
 class UnitOptionAdmin(admin.ModelAdmin):
-    pass
+    form = UnitOptionAdminForm
+    list_filter = [CustomParameterUnitsFilter]
+
+    def get_queryset(self, request):
+        if request.GET:
+            return self.model.objects.unfiltered().all()
+        return self.model.objects.all()

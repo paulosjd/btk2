@@ -20,7 +20,18 @@ class CustomMetricAdd(APIView):
         if all([param_name, unit_symbol, profile]):
             pass
 
+        # if unit_option and parameter:
+        #     try:
+        #         ProfileParamUnitOption.objects.get(
+        #             parameter=parameter, profile=request.user.profile
+        #         )
+        #     except ProfileParamUnitOption.DoesNotExist:
+        #         ProfileParamUnitOption.objects.create(
+        #             parameter=parameter, profile=request.user.profile,
+        #             unit_option=unit_option
+        #         )
 
+            return HttpResponseRedirect(reverse('summary'))
 
 
         # error_msg = 'Parameter or UnitOption lookup failed'

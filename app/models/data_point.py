@@ -43,6 +43,9 @@ class DataPoint(models.Model):
     )
     objects = DatapointManager()
 
+    # def profile_datapoints(self):
+    #     return self.user_datapoints.union()
+
     class Meta:
         unique_together = ('date', 'parameter', 'profile')
         ordering = ('date', )

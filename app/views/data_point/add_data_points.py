@@ -1,6 +1,9 @@
 import logging
 from datetime import datetime
 
+from rest_framework import status
+from rest_framework.response import Response
+
 from app.models import DataPoint, Parameter
 from .dp_base import BaseDataPointsView
 
@@ -10,9 +13,17 @@ log = logging.getLogger(__name__)
 class AddDataPoints(BaseDataPointsView):
 
     def post(self, request):
+        profile = request.user.profile
+        if not profile:
+            return Response({'error': 'Bad request'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         form_data = request.data.get('value')
-        parameter = Parameter.objects.filter(
-            name=form_data.get('parameter')).first()
+        parameter = Parameter.objects.custom_parameters().filter(
+            name=form_data.get('parameter'), profile=profile).first()
+        if not parameter:
+            parameter = Parameter.objects.filter(
+                name=form_data.get('parameter')).first()
 
         if form_data and parameter:
             self.process_post_data(form_data, parameter)

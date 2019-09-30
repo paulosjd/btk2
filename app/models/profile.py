@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db import models
 
+from .parameter import Parameter
 from .user import User
 
 
@@ -34,6 +35,14 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username + '_profile'
+
+    def available_parameters(self):
+        return Parameter.objects.union(
+            Parameter.objects.custom_parameters().filter(profile=self))
+
+    def available_unit(self):
+        return Parameter.objects.union(
+            Parameter.objects.custom_parameters().filter(profile=self))
 
     def all_datapoints(self):
         return self.user_datapoints.order_by(
