@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from app.models import (
-    DataPoint, Parameter, Profile, UnitOption, ProfileParamUnitOption, User
+    Parameter, Profile, UnitOption
 )
 
 

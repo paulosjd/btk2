@@ -34,11 +34,6 @@ class UnitOption(models.Model):
         default=False,
         help_text="Denotes if is non-custom/built-in metric for tracking"
     )
-    profile = models.ForeignKey(
-        'app.Profile',
-        on_delete=models.CASCADE,
-        related_name='custom_unit_options',
-    )
     objects = UnitOptionManager()
 
     class Meta:
@@ -55,8 +50,8 @@ class UnitOption(models.Model):
         if self.param_default:
             try:
                 unit_opt = UnitOption.objects.get(
-                    param_default=True, parameter=self.parameter,
-                    profile=self.profile)
+                    param_default=True, parameter=self.parameter
+                )
                 unit_opt.param_default = False
                 unit_opt.save()
             except UnitOption.DoesNotExist:
@@ -71,13 +66,11 @@ class UnitOption(models.Model):
 @receiver(post_save, sender=Parameter)
 def create_unit_option(sender, instance, created, **kwargs):
     """ Creates a UnitOption instance when a Parameter instance is created """
-    print('create_unit_option run!')
     if created:
         kwargs = dict(
             conversion_factor=1,
             param_default=True,
             parameter=instance,
-            profile=instance.profile
         )
         if instance.is_builtin:
             UnitOption.objects.create(

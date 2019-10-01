@@ -2,7 +2,7 @@ import logging
 from collections import namedtuple
 
 from django.db import models
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from app.models.unit_option import UnitOption
@@ -90,6 +90,16 @@ class ProfileParamUnitOption(models.Model):
         excl_params = profile.summary_data().values_list('parameter')
         return cls.objects.filter(profile=profile).exclude(
             parameter__in=excl_params).all()
+
+
+@receiver(post_save, sender=UnitOption)
+def create_profile_param_unit_option(sender, instance, created, **kwargs):
+    """ Creates a UnitOption instance when a Parameter instance is created """
+    if created and not instance.is_builtin:
+        ProfileParamUnitOption.objects.create(
+            parameter=instance.parameter, profile=instance.parameter.profile,
+            unit_option=instance
+        )
 
 
 @receiver(post_delete)

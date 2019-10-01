@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, DataError, IntegrityError
 from django.db.models import Q
 
 from .managers.parameter_manager import ParameterManager
@@ -14,6 +14,7 @@ class Parameter(models.Model):
     )
     upload_fields = models.CharField(
         max_length=100,
+        default='date, value',
         choices=[('date, value', 'date, value'),
                  ('date, value, value2', 'date, value, value2')],
         verbose_name='csv upload field order string',
@@ -53,7 +54,7 @@ class Parameter(models.Model):
     )
     is_builtin = models.BooleanField(
         default=False,
-        help_text="Denotes if is non-custom/built-in metric for tracking"
+        help_text="Indicates if admin level or user custom level"
     )
     profile = models.ForeignKey(
         'app.Profile',
@@ -95,11 +96,33 @@ class Parameter(models.Model):
         super(Parameter, self).save(**kwargs)
 
     @classmethod
+    def available_parameters_for_profile(cls, profile):
+        return cls.objects.union(
+            cls.objects.custom_parameters().filter(profile=profile)
+        ).all()
+
+    @classmethod
     def create_custom_metric(cls, profile, param_name, unit_symbol):
-        # Validate param_name and return error message if necessary
-        if cls.objects.filter(Q(metic_name=param_name) | Q(
-                profile=profile, custom_param_name=param_name)).all():
-            return False, 'Parameter name already exists'
+        """
+        :param profile: Profile instance
+        :param param_name: str used for 'name' value
+        :param unit_symbol: str used for 'custom_field' value
+        :return: Tuple of Parameter instance or False and str message for user
+        """
+        if cls.objects.unfiltered().filter(
+                Q(name=param_name, is_builtin=True) |
+                Q(name=param_name, profile=profile)
+        ).all():
+            return False, 'Name already exists'
+        try:
+            instance = cls.objects.create(
+                name=param_name, profile=profile, custom_symbol=unit_symbol,
+                upload_field_labels=f'date, {param_name} measurements',
+                is_builtin=False
+            )
+        except (DataError, IntegrityError):
+            return False, 'Invalid data'
+        return instance, ''
 
     date_fmt_opts_map = dict(zip(
         ['YYYY/MM/DD', 'YYYY-MM-DD', 'YY/MM/DD', 'YY-MM-DD',
@@ -107,4 +130,3 @@ class Parameter(models.Model):
         ['%Y/%m/%d', '%Y-%m-%d', '%y/%m/%d', '%y-%m-%d',
          '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%d-%m-%y']
     ))
-

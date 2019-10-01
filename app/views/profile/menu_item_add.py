@@ -6,8 +6,6 @@ from rest_framework.views import APIView
 
 from app.models import Parameter, ProfileParamUnitOption, UnitOption
 from app.serializers import ParameterSerializer
-from app.utils.view_helpers import param_unit_opt_dct
-from app.views.profile.summary_data import ProfileSummaryData
 
 
 class MenuItemAdd(APIView):
@@ -30,7 +28,6 @@ class MenuItemAdd(APIView):
                     parameter=parameter, profile=request.user.profile,
                     unit_option=unit_option
                 )
-
             return HttpResponseRedirect(reverse('summary'))
 
         return Response({'error': error_msg},
