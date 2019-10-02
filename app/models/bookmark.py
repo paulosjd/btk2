@@ -1,4 +1,4 @@
-from django.db import models, DataError
+from django.db import models
 
 
 class Bookmark(models.Model):

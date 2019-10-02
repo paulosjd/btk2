@@ -45,6 +45,7 @@ class ProfileSummaryData(APIView):
             self.update_with_ideals_data(resp_data, profile)
             self.update_with_units_options(resp_data)
             self.update_with_rolling_means(resp_data)
+
             return Response(resp_data, status=status.HTTP_200_OK)
         return Response({'status': 'Bad request',
                          'errors': serializers['profile_summary'].errors},
@@ -62,10 +63,10 @@ class ProfileSummaryData(APIView):
             for obj in Parameter.objects.all()
         ]
         bookmarks = [
-            {field: getattr(obj, field) for field in ['url', 'title']}
+            {field: getattr(obj, field) for field in
+             ['url', 'title', 'param_name']}
             for obj in profile.user_bookmarks.all()
         ]
-        print(bookmarks)
         return [serializer(data=data, many=True) for (serializer, data) in [
             (SummaryDataSerializer, summary_data),
             (ParameterSerializer, avail_params),
