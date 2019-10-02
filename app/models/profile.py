@@ -56,6 +56,11 @@ class Profile(models.Model):
         return self.unit_options.order_by(
             'parameter').distinct('parameter')
 
+    def all_bookmarks(self):
+        return self.user_datapoints.order_by(
+            'parameter', '-date').all()
+
+
     @classmethod
     def create_demo_user(cls):
         cls.objects.create(is_temporary=True)

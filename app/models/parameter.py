@@ -124,9 +124,11 @@ class Parameter(models.Model):
             return False, 'Invalid data'
         return instance, ''
 
+    date_formats = ['YYYY/MM/DD', 'YYYY-MM-DD', 'YY/MM/DD', 'YY-MM-DD',
+                    'DD/MM/YYYY', 'DD-MM-YYYY', 'DD/MM/YY', 'DD-MM-YY']
+
     date_fmt_opts_map = dict(zip(
-        ['YYYY/MM/DD', 'YYYY-MM-DD', 'YY/MM/DD', 'YY-MM-DD',
-         'DD/MM/YYYY', 'DD-MM-YYYY', 'DD/MM/YY', 'DD-MM-YY'],
+        date_formats,
         ['%Y/%m/%d', '%Y-%m-%d', '%y/%m/%d', '%y-%m-%d',
          '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%d-%m-%y']
     ))

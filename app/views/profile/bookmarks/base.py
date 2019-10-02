@@ -1,0 +1,36 @@
+from abc import ABCMeta, abstractmethod
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from app.serializers import BookmarkSerializer
+
+
+class BaseBookmarksView(APIView):
+    __metaclass__ = ABCMeta
+    serializer_class = BookmarkSerializer
+
+    @abstractmethod
+    def post(self, request):
+        raise NotImplementedError
+
+    def json_response(self):
+        return Response({'foo': 'bar'}, status=status.HTTP_200_OK)
+
+        all_data = [
+            {**{field: getattr(obj, field) for field in
+                ['id', 'date', 'value', 'value2', 'qualifier']},
+             **{'parameter': obj.parameter.name,
+                'num_values': obj.parameter.num_values,
+                'value2_short_label_1': obj.parameter.value2_short_label_1,
+                'value2_short_label_2': obj.parameter.value2_short_label_2}}
+            for obj in self.request.user.profile.all_datapoints()
+        ]
+
+        serializer = self.serializer_class(data=all_data, many=True)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({'status': 'Bad request', 'errors': serializer.errors},
+                        status=status.HTTP_400_BAD_REQUEST)

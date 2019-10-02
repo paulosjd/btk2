@@ -61,10 +61,10 @@ class CustomUserAdmin(UserAdmin):
         )
 
 
-# class BojiveAdminForm(forms.ModelForm):
+# class MyAdminForm(forms.ModelForm):
 #
 #     class Meta:
-#         model = Bioactive
+#         model = MyModel
 #         fields = '__all__'
 #         widgets = {
 #             'notes': forms.Textarea(attrs={'rows': 3, 'cols': 60}),

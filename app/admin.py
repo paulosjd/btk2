@@ -6,10 +6,16 @@ from .forms import (
     UnitOptionAdminForm,
 )
 from .models import (
-    DataPoint, Parameter, Profile, UnitOption, ProfileParamUnitOption, User
+    Bookmark, DataPoint, Parameter, Profile, ProfileParamUnitOption, UnitOption,
+    User
 )
 
 admin.site.register(User, CustomUserAdmin)
+
+
+@admin.register(Bookmark)
+class BookmarkAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(DataPoint)
