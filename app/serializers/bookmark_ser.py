@@ -11,7 +11,8 @@ class BookmarkSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True
     )
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Bookmark
-        fields = ['url', 'title', 'param_name', 'profile']
+        fields = ['url', 'title', 'param_name', 'profile', 'id']

@@ -64,7 +64,7 @@ class ProfileSummaryData(APIView):
         ]
         bookmarks = [
             {field: getattr(obj, field) for field in
-             ['url', 'title', 'param_name']}
+             ['id', 'url', 'title', 'param_name']}
             for obj in profile.user_bookmarks.all()
         ]
         return [serializer(data=data, many=True) for (serializer, data) in [
