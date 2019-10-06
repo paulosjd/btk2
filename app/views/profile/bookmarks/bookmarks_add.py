@@ -1,9 +1,10 @@
 import logging
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-from app.models import Bookmark
+from app.models import Bookmark, Parameter
 from .base import BaseBookmarksView
 
 log = logging.getLogger(__name__)
@@ -12,56 +13,33 @@ log = logging.getLogger(__name__)
 class AddBookmarksView(BaseBookmarksView):
 
     def post(self, request):
-        profile = request.user.profile
-        if not profile:
-            return Response({'error': 'Bad request'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        self.profile = request.user.profile
+        form_data = request.data.get('value', {})
+        param_id = form_data.get('param_id')
+        edit_data = {k: v for k, v in form_data.items() if isinstance(k, str)}
+        obj_field_names = [s.split('_')[0] for s in edit_data.keys()]
+        obj_field_value_ids = [s.split('_')[-1] for s in edit_data.keys()]
+        obj_field_values = [v for v in edit_data.values()]
+        data_is_valid = all([
+            self.profile,
+            isinstance(param_id, int),
+            isinstance(del_items, list),
+            all([s.isdigit() for s in obj_field_value_ids]),
+            len(obj_field_names) == len(obj_field_value_ids) == len(
+                obj_field_values)
+        ])
+        if data_is_valid:
+            parameter = get_object_or_404(Parameter.objects, id=param_id)
+            for i, obj_id in enumerate(set(obj_field_value_ids)):
+                obj = get_object_or_404(Bookmark.objects, id=obj_id)
+                obj.title = obj_field_values[i * 2]
+                obj.url = obj_field_values[i * 2 + 1]
+                if int(obj_id) in del_items:
+                    obj.delete()
+                else:
+                    obj.save()
 
-        form_data = request.data.get('value')
-        print(form_data)
-        # Bookmark.objects.create(
-        #
-        # )
+            return self.json_response()
 
-
-
-        #
-        #
-        # parameter = Parameter.objects.custom_parameters().filter(
-        #     name=form_data.get('parameter'), profile=profile).first()
-        # if not parameter:
-        #     parameter = Parameter.objects.filter(
-        #         name=form_data.get('parameter')).first()
-        #
-        # if form_data and parameter:
-        #     self.process_post_data(form_data, parameter)
-        # else:
-        #     log.debug('"form_data and parameter" condition unmet')
-        # return self.json_response()
-
-    # def process_post_data(self, form_data, parameter):
-    #
-    #     param_fields = parameter.upload_fields.split(', ')
-    #     row_nums = set([k.split('_')[0] for k in form_data.keys()
-    #                     if k and k.split('_')[0].isdigit()])
-    #     for num in row_nums:
-    #         try:
-    #             dp_data = {field: form_data[f'{num}_{field}']
-    #                        for field in param_fields + ['date']}
-    #         except KeyError as e:
-    #             log.error(e)
-    #             print(e)
-    #             continue
-    #         for k, v in dp_data.items():
-    #             try:
-    #                 dp_data[k] = datetime.strptime(dp_data[k], '%Y-%m-%d') \
-    #                     if k == 'date' else round(float(dp_data[k]), 2)
-    #             except ValueError:
-    #                 continue
-    #         if not all(dp_data.values()):
-    #             continue
-    #
-    #         DataPoint.update_on_date_match_or_create(
-    #             parameter=parameter, profile=self.request.user.profile,
-    #             **dp_data
-    #         )
+        return Response({'error': 'Bad request'},
+                        status=status.HTTP_400_BAD_REQUEST)

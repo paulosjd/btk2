@@ -11,10 +11,10 @@ class Bookmark(models.Model):
         default='',
         blank=True,
     )
-    param_name = models.CharField(
-        max_length=50,
-        default='',
-        blank=True,
+    parameter = models.ForeignKey(
+        'app.Parameter',
+        on_delete=models.CASCADE,
+        related_name='param_bookmarks',
     )
     profile = models.ForeignKey(
         'app.Profile',

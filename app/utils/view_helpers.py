@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 import pandas as pd
@@ -18,8 +17,8 @@ def param_unit_opt_dct(unit_opt):
 
 def get_summary_data(profile):
     fields = ['name', 'upload_fields', 'upload_field_labels', 'ideal_info',
-              'ideal_info_url', 'num_values'] + [f'value2_short_label_{i}'
-                                                 for i in [1, 2]]
+              'ideal_info_url', 'id', 'num_values'] + [f'value2_short_label_{i}'
+                                                       for i in [1, 2]]
     summary_qs = profile.summary_data()
     return [{
         'parameter': {
@@ -33,37 +32,6 @@ def get_summary_data(profile):
     } for i, obj in enumerate(summary_qs)]
 
 
-test_data = [
-    {'date': '2016-09-04', 'value': 61.2, 'value2': None},
-    {'date': '2016-08-29', 'value': 59.8, 'value2': None},
-    {'date': '2016-08-09', 'value': 61.7, 'value2': None},
-    {'date': '2016-07-29', 'value': 60.2, 'value2': None},
-    {'date': '2016-07-17', 'value': 61.7, 'value2': None},
-    {'date': '2016-07-11', 'value': 58.2, 'value2': None},
-    {'date': '2016-07-09', 'value': 58.3, 'value2': None},
-    {'date': '2016-06-21', 'value': 59.7, 'value2': None},
-    {'date': '2016-06-14', 'value': 61.2, 'value2': None},
-    {'date': '2016-06-09', 'value': 61.5, 'value2': None},
-]
-
-# test_data = [
-#     {'date': datetime.date(2016, 9, 4), 'value': 61.2, 'value2': None},
-#     {'date': datetime.date(2016, 8, 29), 'value': 59.8, 'value2': None},
-#     {'date': datetime.date(2016, 8, 9), 'value': 61.7, 'value2': None},
-#     {'date': datetime.date(2016, 7, 29), 'value': 60.2, 'value2': None},
-#     {'date': datetime.date(2016, 7, 17), 'value': 61.7, 'value2': None},
-#     {'date': datetime.date(2016, 7, 11), 'value': 58.2, 'value2': None},
-#     {'date': datetime.date(2016, 7, 9), 'value': 58.3, 'value2': None},
-#     {'date': datetime.date(2016, 6, 21), 'value': 59.7, 'value2': None},
-#     {'date': datetime.date(2016, 6, 14), 'value': 61.2, 'value2': None},
-#     {'date': datetime.date(2016, 6, 9), 'value': 61.5, 'value2': None},
-#     {'date': datetime.date(2015, 8, 10), 'value': 57.8, 'value2': None}
-# ]
-
-
-# In resp_data - if meets requirements for certain number and frequency of data
-# make key e.g. info which has array with key param_name and value is rolling
-# mean series (data of date and values)
 def get_rolling_mean(start_date, end_date, data_points=None, meta=None):
     """
     :param start_date: str representing first date in the date range

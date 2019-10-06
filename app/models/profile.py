@@ -60,9 +60,15 @@ class Profile(models.Model):
         return self.user_datapoints.order_by(
             'parameter', '-date').all()
 
+    def get_bookmarks_data(self):
+        return [
+            {**{field: getattr(obj, field) for field in
+             ['id', 'url', 'title', 'parameter_id']},
+             **{'param_id': obj.parameter.id,
+                'param_name': obj.parameter.name}}
+            for obj in self.user_bookmarks.all()
+        ]
 
     @classmethod
     def create_demo_user(cls):
         cls.objects.create(is_temporary=True)
-
-

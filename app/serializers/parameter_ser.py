@@ -11,12 +11,13 @@ class ParameterSerializer(serializers.ModelSerializer):
     ideal_info = serializers.CharField(required=False, allow_blank=True)
     ideal_info_url = serializers.CharField(required=False, allow_blank=True)
     num_values = serializers.CharField(required=False, allow_blank=True)
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Parameter
         fields = (
             'name', 'upload_fields', 'upload_field_labels',
             'available_unit_options', 'unit_name', 'unit_symbol',
-            'num_values', 'ideal_info', 'ideal_info_url',
+            'num_values', 'ideal_info', 'ideal_info_url', 'id',
             *[f'value2_short_label_{i}' for i in [1, 2]]
         )

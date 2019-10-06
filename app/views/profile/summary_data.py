@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 class ProfileSummaryData(APIView):
     param_fields = ['name', 'upload_fields', 'upload_field_labels',
                     'num_values', 'ideal_info', 'ideal_info_url',
-                    'available_unit_options']
+                    'available_unit_options', 'id']
     profile_params = []
     all_measurements = []
 
@@ -52,6 +52,7 @@ class ProfileSummaryData(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializers(self, profile):
+        bookmarks = profile.get_bookmarks_data()
         summary_data = get_summary_data(profile)
         all_data = [{**{field: getattr(obj, field) for field in
                         ['id', 'date', 'value', 'value2', 'qualifier']},
@@ -61,11 +62,6 @@ class ProfileSummaryData(APIView):
         avail_params = [
             {field: getattr(obj, field) for field in self.param_fields}
             for obj in Parameter.objects.all()
-        ]
-        bookmarks = [
-            {field: getattr(obj, field) for field in
-             ['id', 'url', 'title', 'param_name']}
-            for obj in profile.user_bookmarks.all()
         ]
         return [serializer(data=data, many=True) for (serializer, data) in [
             (SummaryDataSerializer, summary_data),
