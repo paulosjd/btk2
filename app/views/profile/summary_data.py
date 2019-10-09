@@ -12,7 +12,7 @@ from app.serializers import (
 )
 from app.utils.calc_param_ideal import CalcParamIdeal
 from app.utils.view_helpers import (
-    get_summary_data, param_unit_opt_dct, get_rolling_mean
+    get_summary_data, param_unit_opt_dct, get_rolling_mean, get_monthly_changes
 )
 
 log = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class ProfileSummaryData(APIView):
             })
             self.update_with_ideals_data(resp_data, profile)
             self.update_with_units_options(resp_data)
-            self.update_with_rolling_means(resp_data)
+            self.update_with_rolling_means_and_monthly_changes(resp_data)
 
             return Response(resp_data, status=status.HTTP_200_OK)
         return Response({'status': 'Bad request',
@@ -119,22 +119,6 @@ class ProfileSummaryData(APIView):
                 ProfileParamObj(obj.param_name, profile_param)
             )
 
-    @staticmethod
-    def update_with_rolling_means(resp_data):
-        """ Updates resp_data with the key rolling_means """
-        resp_data['rolling_means'] = []
-        data_points = resp_data['datapoints']
-        param_names = set([a['parameter'] for a in data_points])
-        for pn in param_names:
-            param_dps = [a for a in data_points if a['parameter'] == pn]
-            resp_data['rolling_means'].append(
-                get_rolling_mean(
-                    param_dps[-1]['date'],
-                    param_dps[0]['date'],
-                    data_points=param_dps,
-                    meta={'param_name': pn}
-                ))
-
     def update_with_units_options(self, resp_data):
         """ Updates resp_data with the key unit_info """
         resp_data['unit_info'] = []
@@ -164,3 +148,20 @@ class ProfileSummaryData(APIView):
                 ['color_hex', 'color_range_val_1', 'color_range_val_2']
             })
             return pp_unit_info
+
+    @staticmethod
+    def update_with_rolling_means_and_monthly_changes(resp_data):
+        """ Updates the dict passed in with data returned from helper functions
+        :param resp_data: dict containing data with expected structure
+        :return: None
+        """
+        resp_data.update({k: [] for k in ['rolling_means', 'monthly_changes']})
+        data_points = resp_data['datapoints']
+        param_names = set([a['parameter'] for a in data_points])
+        for pn in param_names:
+            param_dps = [a for a in data_points if a['parameter'] == pn]
+            resp_data['rolling_means'].append(
+                get_rolling_mean(param_dps, extra={'param_name': pn}))
+            resp_data['monthly_changes'].append(
+                get_monthly_changes(param_dps, extra={'param_name': pn})
+            )

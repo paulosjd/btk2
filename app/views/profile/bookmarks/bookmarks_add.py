@@ -1,13 +1,9 @@
-import logging
-
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-from app.models import Bookmark, Parameter
 from .base import BaseBookmarksView
-
-log = logging.getLogger(__name__)
+from app.models import Bookmark, Parameter
 
 
 class AddBookmarksView(BaseBookmarksView):
@@ -15,31 +11,21 @@ class AddBookmarksView(BaseBookmarksView):
     def post(self, request):
         self.profile = request.user.profile
         form_data = request.data.get('value', {})
-        param_id = form_data.get('param_id')
-        edit_data = {k: v for k, v in form_data.items() if isinstance(k, str)}
-        obj_field_names = [s.split('_')[0] for s in edit_data.keys()]
-        obj_field_value_ids = [s.split('_')[-1] for s in edit_data.keys()]
-        obj_field_values = [v for v in edit_data.values()]
+        param_id, bm_url, bm_title = [form_data.get(s) for s in
+                                      ['param_id', 'url', 'title']]
         data_is_valid = all([
-            self.profile,
             isinstance(param_id, int),
-            isinstance(del_items, list),
-            all([s.isdigit() for s in obj_field_value_ids]),
-            len(obj_field_names) == len(obj_field_value_ids) == len(
-                obj_field_values)
+            bm_url and isinstance(bm_url, str) and len(bm_url) <= 100,
+            bm_title and isinstance(bm_title, str) and len(bm_title) <= 50,
         ])
         if data_is_valid:
             parameter = get_object_or_404(Parameter.objects, id=param_id)
-            for i, obj_id in enumerate(set(obj_field_value_ids)):
-                obj = get_object_or_404(Bookmark.objects, id=obj_id)
-                obj.title = obj_field_values[i * 2]
-                obj.url = obj_field_values[i * 2 + 1]
-                if int(obj_id) in del_items:
-                    obj.delete()
-                else:
-                    obj.save()
-
+            Bookmark.objects.create(
+                url=bm_url,
+                title=bm_title,
+                parameter=parameter,
+                profile=self.profile
+            )
             return self.json_response()
-
         return Response({'error': 'Bad request'},
                         status=status.HTTP_400_BAD_REQUEST)

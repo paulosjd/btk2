@@ -22,7 +22,6 @@ class EditBookmarksView(BaseBookmarksView):
         obj_field_value_ids = [s.split('_')[-1] for s in edit_data.keys()]
         obj_field_values = [v for v in edit_data.values()]
         data_is_valid = all([
-            self.profile,
             isinstance(param_id, int),
             isinstance(del_items, list),
             all([s.isdigit() for s in obj_field_value_ids]),

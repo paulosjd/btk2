@@ -1,10 +1,10 @@
+
 import logging
 
 import pandas as pd
 import numpy as np
 
 from app.models import ProfileParamUnitOption
-from btk2.settings import DEBUG
 
 log = logging.getLogger(__name__)
 
@@ -32,29 +32,76 @@ def get_summary_data(profile):
     } for i, obj in enumerate(summary_qs)]
 
 
-def get_rolling_mean(start_date, end_date, data_points=None, meta=None):
+def get_rolling_mean(data_points, extra=None):
     """
-    :param start_date: str representing first date in the date range
-    :param end_date: str representing last date in the date range
     :param data_points: list of dictionaries containing keys 'date' and 'value'
       and whose 'date' keys are within start_date and end_date
-    :param meta: dict containing data to include within the returned dicts
+    :param extra: dict containing data to include within the returned dicts
     :return: list of dictionaries containing keys 'date' and 'value'
     """
-    if not data_points:
-        data_points = []
-    if not meta:
-        meta = {}
-
-    date_range = pd.date_range(start_date, end_date, freq='D')
+    if not extra:
+        extra = {}
+    dp_values = [dp['value'] for dp in data_points]
     dates = pd.Index([pd.Timestamp(dp['date']) for dp in data_points])
-    series = pd.Series([dp['value'] for dp in data_points], dates)
+    series = pd.Series(dp_values, dates)
+    rolling_means = [
+        {'date': a.strftime('%Y-%m-%d'),
+         'value': round(b, 1),
+         **extra} for a, b in
+        series.rolling(4, min_periods=2).mean().dropna().iteritems()
+    ]
+    dp_values2 = [dp['value2'] for dp in data_points if dp.get('value2')]
+    if len(dp_values) == len(dp_values2):
+        series2 = pd.Series(dp_values2, dates)
+        r_means2 = series2.rolling(4, min_periods=2).mean().dropna().iteritems()
+        for ind, item in enumerate(r_means2):
+            rolling_means[ind].update({'value2': round(item[1], 1)})
+            # log.info({extra.get('param_name'): list(series.dropna())})
 
-    if DEBUG:
-        log.info(list(series.dropna()))
-        log.info(list(series.reindex(date_range, fill_value=np.NaN).dropna()))
+    return rolling_means
 
-    return [{'date': a.strftime('%Y-%m-%d'),
-             'value': round(b, 1),
-             **meta} for a, b in
-            series.rolling(4, min_periods=2).mean().dropna().iteritems()]
+
+def get_monthly_changes(data_points, extra=None):
+    """
+    :param data_points: list of dictionaries containing keys 'date' and 'value'
+      and whose 'date' keys are within start_date and end_date
+    :param extra: dict containing data to include within the returned dicts
+    :return: list of dictionaries containing keys 'date' and 'value'
+    """
+    if not extra:
+        extra = {}
+    print(data_points)
+    dates = pd.Index([pd.Timestamp(dp['date']) for dp in data_points])
+
+    day_diffs = []
+    val_diffs = []
+    val2_diffs = []
+    has_val2 = len([dp['value2'] for dp in data_points
+                    if dp.get('value2')]) == len(data_points)
+
+    for i, dp in enumerate(data_points):
+        if i > 0:
+            day_diffs.append(
+                abs((pd.Timestamp(dp['date']) - pd.Timestamp(
+                    data_points[i - 1]['date'])).days)
+            )
+            val_diffs.append(
+                dp['value'] - data_points[i - 1]['value']
+            )
+            if has_val2:
+                val2_diffs.append(
+                    dp['value2'] - data_points[i - 1]['value2']
+                )
+    print(day_diffs)
+    print(val_diffs)
+    print(val2_diffs)
+
+
+
+
+
+
+    # return [{'date': a.strftime('%Y-%m-%d'),
+    #          'value': round(b, 1),
+    #          **extra} for a, b in
+    #         series.rolling(4, min_periods=2).mean().dropna().iteritems()]
