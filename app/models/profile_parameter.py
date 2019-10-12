@@ -109,6 +109,12 @@ class ProfileParamUnitOption(models.Model):
             })
             return pp_unit_info
 
+    @staticmethod
+    def param_unit_opt_dct(unit_opt):
+        return {f'unit_{field}': getattr(unit_opt, field)
+                for field in ['symbol', 'name', 'param_default',
+                              'conversion_factor']}
+
 
 @receiver(post_save, sender=UnitOption)
 def create_profile_param_unit_option(sender, instance, created, **kwargs):

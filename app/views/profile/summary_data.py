@@ -10,10 +10,7 @@ from app.serializers import (
     BookmarkSerializer, DataPointSerializer, ParameterSerializer,
     SummaryDataSerializer
 )
-from app.utils.calc_param_ideal import CalcParamIdeal
-from app.utils.view_helpers import (
-    get_summary_data, param_unit_opt_dct, get_rolling_mean, get_monthly_changes
-)
+from app.utils import CalcParamIdeal, get_monthly_changes, get_rolling_mean
 
 log = logging.getLogger(__name__)
 
@@ -39,12 +36,13 @@ class ProfileSummaryData(APIView):
                 'blank_params':
                     [{**{field: getattr(obj.parameter, field)
                          for field in self.param_fields},
-                      **param_unit_opt_dct(obj.unit_option)}
+                      **ProfileParamUnitOption.param_unit_opt_dct(
+                          obj.unit_option)}
                      for obj in null_data_params],
             })
             self.update_with_ideals_data(resp_data, profile)
             self.update_with_units_options(resp_data)
-            self.update_with_rolling_means_and_monthly_changes(resp_data)
+            self.update_with_stats_data(resp_data)
 
             return Response(resp_data, status=status.HTTP_200_OK)
         return Response({'status': 'Bad request',
@@ -53,7 +51,7 @@ class ProfileSummaryData(APIView):
 
     def get_serializers(self, profile):
         bookmarks = profile.get_bookmarks_data()
-        summary_data = get_summary_data(profile)
+        summary_data = profile.get_summary_data()
         all_data = [{**{field: getattr(obj, field) for field in
                         ['id', 'date', 'value', 'value2', 'qualifier']},
                      **{'parameter': obj.parameter.name,
@@ -132,7 +130,7 @@ class ProfileSummaryData(APIView):
                 added_item_names.append(obj.param_name)
 
     @staticmethod
-    def update_with_rolling_means_and_monthly_changes(resp_data):
+    def update_with_stats_data(resp_data):
         """ Updates the dict passed in with data returned from helper functions
         :param resp_data: dict containing data with expected structure
         :return: None

@@ -3,6 +3,7 @@ from datetime import datetime
 from django.db import models
 
 from .parameter import Parameter
+from .profile_parameter import ProfileParamUnitOption
 from .user import User
 
 
@@ -72,3 +73,19 @@ class Profile(models.Model):
     @classmethod
     def create_demo_user(cls):
         cls.objects.create(is_temporary=True)
+
+    def get_summary_data(self):
+        fields = ['name', 'upload_fields', 'upload_field_labels', 'ideal_info',
+                  'ideal_info_url', 'id', 'num_values'] + \
+                 [f'value2_short_label_{i}' for i in [1, 2]]
+        summary_qs = self.summary_data()
+        return [{
+            'parameter': {
+                **{field: getattr(obj.parameter, field) for field in fields},
+                **ProfileParamUnitOption.param_unit_opt_dct(
+                    ProfileParamUnitOption.get_unit_option(
+                        self, summary_qs[i].parameter)
+                )},
+            'data_point': {field: getattr(obj, field)
+                           for field in ['date', 'value', 'value2']},
+        } for i, obj in enumerate(summary_qs)]
