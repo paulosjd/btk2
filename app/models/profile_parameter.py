@@ -91,6 +91,24 @@ class ProfileParamUnitOption(models.Model):
         return cls.objects.filter(profile=profile).exclude(
             parameter__in=excl_params).all()
 
+    @staticmethod
+    def get_unit_info(obj):
+        """
+        :param obj: expected to have 'param_name' and 'pp_unit_info' attributes
+        :return: dict or None
+        """
+        if obj.pp_unit_option:
+            pp_unit_info = {
+                k: getattr(obj.pp_unit_option.unit_option, k)
+                for k in ['param_default', 'conversion_factor', 'symbol']
+            }
+            pp_unit_info['param_name'] = obj.param_name
+            pp_unit_info.update({
+                k: getattr(obj.pp_unit_option, k) for k in
+                ['color_hex', 'color_range_val_1', 'color_range_val_2']
+            })
+            return pp_unit_info
+
 
 @receiver(post_save, sender=UnitOption)
 def create_profile_param_unit_option(sender, instance, created, **kwargs):

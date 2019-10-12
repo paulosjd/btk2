@@ -126,28 +126,10 @@ class ProfileSummaryData(APIView):
         for obj in self.profile_params:
             pp_unit_info = {}
             if obj.param_name not in added_item_names:
-                pp_unit_info = self.get_profile_param_unit_info(obj)
+                pp_unit_info = ProfileParamUnitOption.get_unit_info(obj)
             if pp_unit_info:
                 resp_data['unit_info'].append(pp_unit_info)
                 added_item_names.append(obj.param_name)
-
-    @staticmethod
-    def get_profile_param_unit_info(obj):
-        """
-        :param obj: expected to have 'param_name' and 'pp_unit_info' attributes
-        :return: dict or None
-        """
-        if obj.pp_unit_option:
-            pp_unit_info = {
-                k: getattr(obj.pp_unit_option.unit_option, k)
-                for k in ['param_default', 'conversion_factor', 'symbol']
-            }
-            pp_unit_info['param_name'] = obj.param_name
-            pp_unit_info.update({
-                k: getattr(obj.pp_unit_option, k) for k in
-                ['color_hex', 'color_range_val_1', 'color_range_val_2']
-            })
-            return pp_unit_info
 
     @staticmethod
     def update_with_rolling_means_and_monthly_changes(resp_data):
