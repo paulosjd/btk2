@@ -6,38 +6,35 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 
-def get_pc_changes_per_month(*args, mpdd_ind=0, val2=False):
+def get_pc_changes_per_month(mpdd, vdpm, mpdd_ind=0):
     """ Used to get pro rata percentage change per month for range of months
     from pre-processed data which has a different interval i.e. different length
-    :param args: first is months_per_days_diff, second is val_pc_diffs_per_month
-    :param mpdd_ind: index position to use on months_per_day_diff on recursion
+    :param mpdd: list, acronym for months_per_days_diff
+    :param vdpm: list, acronym for val_pc_diffs_per_month
+    :param mpdd_ind: index position to use with months_per_day_diff on recursion
     :return:
     """
-
-    mpdd, val_pc_diffs_per_month = args
     fraction = 1.0
-    assert len(mpdd) == len(val_pc_diffs_per_month), 'Lengths must be equal'
-
+    assert len(mpdd) == len(vdpm), 'Lengths must be equal'
     if len(mpdd) == mpdd_ind:
         return 0
 
     if not mpdd[mpdd_ind]:
-        return get_pc_changes_per_month(*args, mpdd_ind=mpdd_ind + 1)
+        return get_pc_changes_per_month(mpdd, vdpm, mpdd_ind=mpdd_ind + 1)
 
     if mpdd[mpdd_ind] >= fraction:
         mpdd[mpdd_ind] -= fraction
-        return val_pc_diffs_per_month[mpdd_ind] * fraction
+        return vdpm[mpdd_ind] * fraction
     else:
         # mpdd[mpdd_ind] is < fraction
         this_fraction = mpdd[mpdd_ind]
         mpdd[mpdd_ind] = 0
         remainder = fraction - this_fraction
         try:
-            month_val = val_pc_diffs_per_month[mpdd_ind] * this_fraction + \
-                   val_pc_diffs_per_month[mpdd_ind + 1] * remainder
+            month_val = vdpm[mpdd_ind] * this_fraction + \
+                   vdpm[mpdd_ind + 1] * remainder
         except IndexError:
-            return val_pc_diffs_per_month[mpdd_ind] * fraction
-        mpdd[mpdd_ind] = 0
+            return vdpm[mpdd_ind] * this_fraction
         mpdd[mpdd_ind + 1] -= remainder
         return month_val
 
@@ -89,7 +86,21 @@ def get_monthly_changes(data_points, extra=None):
     months_per_days_diff = [pd.Timedelta(days=i) / np.timedelta64(1, 'M')
                             for i in day_diffs]
 
-    return [{'month': month,
-             'value': get_pc_changes_per_month(months_per_days_diff,
-                                               val_pc_diffs_per_month),
-             **extra} for month in months]
+    val2_pc_diffs_per_month = []
+    if has_val2:
+        val2_pc_diffs_per_month = [val / month_diffs[i] for i, val in
+                                   enumerate(val2_pc_diffs)]
+
+    monthly_changes = []
+    for month in months:
+        mpdd_cp = months_per_days_diff[:]
+        data = {'month': month,
+                'value': round(get_pc_changes_per_month(
+                    months_per_days_diff, val_pc_diffs_per_month), 1),
+                **extra}
+        if has_val2:
+            data['value2'] = round(get_pc_changes_per_month(
+                mpdd_cp, val2_pc_diffs_per_month), 1)
+        monthly_changes.append(data)
+
+    return monthly_changes
