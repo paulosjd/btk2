@@ -10,7 +10,7 @@ from app.serializers import (
     BookmarkSerializer, DataPointSerializer, ParameterSerializer,
     SummaryDataSerializer
 )
-from app.utils import CalcParamIdeal, get_monthly_changes, get_rolling_mean
+from app.utils import CalcParamIdeal, get_monthly_means, get_rolling_mean
 
 log = logging.getLogger(__name__)
 
@@ -142,5 +142,5 @@ class ProfileSummaryData(APIView):
             resp_data['rolling_means'].append(
                 get_rolling_mean(param_dps, extra={'param_name': pn}))
             resp_data['monthly_changes'].append(
-                get_monthly_changes(param_dps, extra={'param_name': pn})
+                get_monthly_means(param_dps, extra={'param_name': pn})
             )

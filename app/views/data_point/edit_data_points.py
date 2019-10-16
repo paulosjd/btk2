@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime as dt
 
 from django.db import IntegrityError
@@ -6,6 +7,8 @@ from rest_framework.response import Response
 
 from app.models import DataPoint
 from .dp_base import BaseDataPointsView
+
+log = logging.getLogger(__name__)
 
 
 class EditDataPoints(BaseDataPointsView):
@@ -19,6 +22,7 @@ class EditDataPoints(BaseDataPointsView):
                                 k.endswith('_date')])
 
             if len(dp_ids) != len(unique_dates):
+                print('here!!')
                 return Response({'error': 'Ensure dates are unique'},
                                 status=status.HTTP_400_BAD_REQUEST)
             dp_records = DataPoint.objects.filter(id__in=dp_ids)
@@ -43,8 +47,8 @@ class EditDataPoints(BaseDataPointsView):
                         setattr(dp_record, field, value)
                     try:
                         dp_record.save()
-                    except IntegrityError:
-                        return Response({'error': 'Something went wrong'},
-                                        status=status.HTTP_400_BAD_REQUEST)
+                    except IntegrityError as e:
+                        log.error(e)
+                        continue
 
         return self.json_response()
