@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app.models import ProfileParamUnitOption
-from app.views.profile.summary_data import ProfileSummaryData
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +46,6 @@ class ParamColorsUpdateView(APIView):
         for name, obj in name_obj_pairs:
             item = Item(name, obj)
             resp_data.append(
-                ProfileSummaryData.get_unit_info(item)
+                ProfileParamUnitOption.get_unit_info(item)
             )
         return Response(resp_data, status=status.HTTP_200_OK)
