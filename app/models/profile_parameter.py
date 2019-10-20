@@ -2,8 +2,6 @@ import logging
 from collections import namedtuple
 
 from django.db import models
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 
 from app.models.unit_option import UnitOption
 from app.utils.calc_param_ideal import CalcParamIdeal
@@ -114,28 +112,3 @@ class ProfileParamUnitOption(models.Model):
         return {f'unit_{field}': getattr(unit_opt, field)
                 for field in ['symbol', 'name', 'param_default',
                               'conversion_factor']}
-
-
-@receiver(post_save, sender=UnitOption)
-def create_profile_param_unit_option(sender, instance, created, **kwargs):
-    """ Creates a UnitOption instance when a Parameter instance is created """
-    if created and not instance.is_builtin:
-        ProfileParamUnitOption.objects.create(
-            parameter=instance.parameter, profile=instance.parameter.profile,
-            unit_option=instance
-        )
-
-
-@receiver(post_delete)
-def profile_param_unit_option_post_delete(sender, instance, *args, **kwargs):
-    """ To clean up any redundant model instances, e.g. no DataPoint instances
-    pointing to a Parameter that such a model
-    points to. Note that as sender argument not included in the decorator,
-    this callback is called for all models """
-    from app.models.data_point import DataPoint
-    if sender == DataPoint:
-        filter_kwargs = dict(profile=instance.profile,
-                             parameter=instance.parameter)
-        if not DataPoint.objects.filter(**filter_kwargs).exists():
-            for obj in ProfileParamUnitOption.objects.filter(**filter_kwargs):
-                obj.delete()

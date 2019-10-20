@@ -6,8 +6,8 @@ from .forms import (
     UnitOptionAdminForm,
 )
 from .models import (
-    Bookmark, DataPoint, Parameter, Profile, ProfileParamUnitOption, UnitOption,
-    User
+    Bookmark, DataPoint, Parameter, Profile, ProfileParamUnitOption,
+    ProfileParameterLink, UnitOption, User
 )
 
 admin.site.register(User, CustomUserAdmin)
@@ -37,6 +37,11 @@ class ParameterAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ProfileParameterLink)
+class ProfileParameterLinkAdmin(admin.ModelAdmin):
     pass
 
 

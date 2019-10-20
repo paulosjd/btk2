@@ -70,6 +70,10 @@ class Profile(models.Model):
             for obj in self.user_bookmarks.all()
         ]
 
+    def get_linked_profile_parameters(self):
+        return [[prm.name for prm in lpp.parameters.all()]
+                for lpp in self.linked_profile_parameters.all()]
+
     @classmethod
     def create_demo_user(cls):
         cls.objects.create(is_temporary=True)

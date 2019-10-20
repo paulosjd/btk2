@@ -33,6 +33,7 @@ class ProfileSummaryData(APIView):
             null_data_params = ProfileParamUnitOption.null_data_params(profile)
             resp_data.update({
                 'date_formats': Parameter.date_formats,
+                'linked_parameters': profile.get_linked_profile_parameters(),
                 'blank_params':
                     [{**{field: getattr(obj.parameter, field)
                          for field in self.param_fields},
@@ -75,8 +76,7 @@ class ProfileSummaryData(APIView):
                           ['param_name', 'value', 'value2'])
         profile_summary_items = [
             Item(obj['parameter']['name'],
-                 obj['data_point']['value'],
-                 obj['data_point']['value2'])
+                 *[obj['data_point'][k] for k in ['value', 'value2']])
             for obj in resp_data['profile_summary']
         ]
         blank_param_items = [Item(obj['name'], None, None)

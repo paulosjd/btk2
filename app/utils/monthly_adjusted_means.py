@@ -44,12 +44,14 @@ def get_monthly_means(data_points, extra=None):
     latest_date_str = latest_date.strftime("%Y-%b")
     max_days = Timedelta(days=min(sum(day_diffs), 375))
     earliest_date = latest_date - max_days
-    months_dt = date_range(earliest_date,
-                           latest_date, freq='M').tolist()[::-1]
-    days_range = date_range(earliest_date,
-                            latest_date, freq='D').tolist()[::-1]
+    months_dt = date_range(
+        earliest_date, latest_date, freq='M').tolist()[::-1]
+    days_range = date_range(
+        earliest_date, latest_date, freq='D').tolist()[::-1]
 
-    values = get_interpolated_values(day_diffs, data_points, 'value')
+    values = get_interpolated_values(
+        day_diffs, data_points, 'value'
+    )
     month_keys = [latest_date_str] + [a.strftime("%Y-%b") for a in months_dt]
     months = get_monthly_values(values, days_range, month_keys)
     months2 = []

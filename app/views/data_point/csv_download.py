@@ -14,6 +14,8 @@ log = logging.getLogger(__name__)
 
 class CsvDownloadView(APIView):
     serializer_class = DataPointSerializer
+    parameters = []
+    param_cols = {}
 
     def post(self, request):
         """
@@ -28,8 +30,10 @@ class CsvDownloadView(APIView):
         if date_fmt and param_names:
             parameters = [Parameter.objects.get(name=field)
                           for field in param_names]
-            header_labels = self.get_headers_labels(parameters)
-            rows = self.get_rows(parameters, date_fmt)
+            self.init(parameters, date_fmt)
+
+            header_labels = self.get_headers_labels()
+            rows = self.get_rows()
 
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = \
@@ -46,15 +50,31 @@ class CsvDownloadView(APIView):
         return Response({'error': 'Bad request'},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    def get_headers_labels(self, parameters):
+    def init(self, parameters, dt_fmt):
+        for param in parameters:
+            param_dpts = DataPoint.objects.filter(
+                profile=self.request.user.profile, parameter=param
+            ).all()
+            param_sub_rows = [
+                [getattr(a, field) for field in param.upload_fields.split(', ')]
+                for a in param_dpts
+            ]
+            for ind, ps in enumerate(param_sub_rows):
+                param_sub_rows[ind][0] = param_sub_rows[ind][0].strftime(dt_fmt)
+            self.param_cols[param.name] = param_sub_rows
+            self.parameters.append(param)
+        self.parameters = list(reversed(sorted(
+            self.parameters, key=lambda x: len(self.param_cols[x.name])
+        )))
+
+    def get_headers_labels(self):
         """ Returns data for use by csv writer
-        :param parameters: list of Parameter objects
         :return: list of strings
         """
         header_labels = []
         first = True
 
-        for parameter in parameters:
+        for parameter in self.parameters:
             unit_option = ProfileParamUnitOption.get_unit_option(
                 self.request.user.profile, parameter
             )
@@ -71,35 +91,16 @@ class CsvDownloadView(APIView):
 
         return header_labels
 
-    def get_rows(self, parameters, dt_fmt):
-        """ Returns data to be used by csv writer
-        :param parameters: list of Parameter objects
-        :param dt_fmt: string which specifies datetime string formatting
-        :return: list of lists containing strings
-        """
+    def get_rows(self):
+        """ Returns list of lists containing strings used by csv writer """
         rows = []
-        param_cols = {}
-
-        for parameter in parameters:
-            param_dpts = DataPoint.objects.filter(
-                profile=self.request.user.profile, parameter=parameter
-            ).all()
-            param_sub_rows = [
-                [getattr(a, field)
-                 for field in parameter.upload_fields.split(', ')]
-                for a in param_dpts
-            ]
-            for ind, ps in enumerate(param_sub_rows):
-                param_sub_rows[ind][0] = param_sub_rows[ind][0].strftime(dt_fmt)
-            param_cols[parameter.name] = param_sub_rows
-
-        max_col_len = max([len(i) for i in param_cols.values()])
+        max_col_len = max([len(i) for i in self.param_cols.values()])
         for row_num in range(max_col_len):
             row = []
             first = True
-            for parameter in parameters:
+            for parameter in self.parameters:
                 try:
-                    sub_row = param_cols[parameter.name][row_num]
+                    sub_row = self.param_cols[parameter.name][row_num]
                 except IndexError:
                     sub_row = ['' for _ in range(parameter.num_values + 1)]
                 if not first:
