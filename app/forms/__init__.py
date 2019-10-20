@@ -1,5 +1,6 @@
 from .admin_forms import (
-    CustomUserAdmin, ParameterAdminForm, UnitOptionAdminForm,
+    CustomUserAdmin, ParameterAdminForm, ProfileParameterLinkAdminForm,
+    UnitOptionAdminForm,
 )
 from .admin_list_filters import (
     CustomParameterFilter, CustomParameterUnitsFilter, DatapointParamFilter,
@@ -12,6 +13,7 @@ __all__ = [
     CustomUserAdmin,
     DatapointParamFilter,
     ParameterAdminForm,
+    ProfileParameterLinkAdminForm,
     ProfileParamUnitOptionFilter,
     UnitOptionAdminForm,
 ]

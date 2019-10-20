@@ -2,8 +2,8 @@ from django.contrib import admin
 
 from .forms import (
     CustomParameterFilter, CustomParameterUnitsFilter, CustomUserAdmin,
-    DatapointParamFilter, ParameterAdminForm, ProfileParamUnitOptionFilter,
-    UnitOptionAdminForm,
+    DatapointParamFilter, ParameterAdminForm, ProfileParameterLinkAdminForm,
+    ProfileParamUnitOptionFilter, UnitOptionAdminForm,
 )
 from .models import (
     Bookmark, DataPoint, Parameter, Profile, ProfileParamUnitOption,
@@ -42,7 +42,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(ProfileParameterLink)
 class ProfileParameterLinkAdmin(admin.ModelAdmin):
-    pass
+    form = ProfileParameterLinkAdminForm
 
 
 @admin.register(ProfileParamUnitOption)
