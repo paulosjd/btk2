@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 
-from app.models import Parameter, ProfileParameterLink, UnitOption
+from app.models import Parameter, UnitOption
 
 
 class ParameterAdminForm(forms.ModelForm):
@@ -30,17 +30,6 @@ class ParameterAdminForm(forms.ModelForm):
             raise ValidationError('split upload_fields_labels and '
                                   'num_values + 1 do not match up')
         return cleaned_data
-
-
-class ProfileParameterLinkAdminForm(forms.ModelForm):
-    class Meta:
-        model = ProfileParameterLink
-        fields = '__all__'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if len(cleaned_data.get('parameters', [])) > 2:
-            raise ValidationError('Maximum number of parameters is 2')
 
 
 class UnitOptionAdminForm(forms.ModelForm):

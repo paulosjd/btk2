@@ -24,6 +24,13 @@ class ProfileParamUnitOption(models.Model):
         related_name='profile_parameters',
         on_delete=models.CASCADE,
     )
+    linked_parameter = models.ForeignKey(
+        'app.Parameter',
+        related_name='profile_parameter_linked_parameters',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     target_value = models.FloatField(
         max_length=6,
         null=True,

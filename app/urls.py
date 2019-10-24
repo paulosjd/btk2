@@ -6,8 +6,8 @@ from .views.data_point.add_data_points import AddDataPoints
 from .views.data_point.edit_data_points import EditDataPoints
 from .views.data_point.qualifying_text import QualifyingTextCrudView
 from .views.profile import (
-    AddBookmarksView, CustomMetricAdd, EditBookmarksView, MenuItemAdd,
-    ParamColorsUpdateView, ProfileInfoUpdate, ProfileSummaryData,
+    AddBookmarksView, CustomMetricAdd, EditBookmarksView, LinkedParamCrud,
+    MenuItemAdd, ParamColorsUpdateView, ProfileInfoUpdate, ProfileSummaryData,
     TargetUpdateView,
 )
 from .views.user import (
@@ -27,6 +27,7 @@ urlpatterns = [
     path('profile/custom-metric-add', CustomMetricAdd.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('profile/menu-item-add', MenuItemAdd.as_view()),
+    path('profile/linked-param/<action>', LinkedParamCrud.as_view()),
     path('profile/param-colors', ParamColorsUpdateView.as_view()),
     path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
     path('profile/target-update', TargetUpdateView.as_view()),
