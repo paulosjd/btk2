@@ -59,13 +59,3 @@ class CustomUserAdmin(UserAdmin):
             'username', 'email', 'first_name', 'last_name', 'is_staff',
             'is_temporary'
         )
-
-
-# class MyAdminForm(forms.ModelForm):
-#
-#     class Meta:
-#         model = MyModel
-#         fields = '__all__'
-#         widgets = {
-#             'notes': forms.Textarea(attrs={'rows': 3, 'cols': 60}),
-#         }

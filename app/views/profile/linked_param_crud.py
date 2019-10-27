@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -5,6 +7,8 @@ from rest_framework.views import APIView
 
 from app.models import Parameter, ProfileParamUnitOption
 from app.serializers import ParameterSerializer
+
+log = logging.getLogger(__name__)
 
 
 class LinkedParamCrud(APIView):
@@ -18,17 +22,42 @@ class LinkedParamCrud(APIView):
     def post(self, request):
         profile = request.user.profile
         if self.action == 'add':
-            id_list = request.data.get('value')
-            if isinstance(id_list, list) and len(id_list) == 2:
-                params = [get_object_or_404(Parameter, id=i) for i in id_list]
-                # if not ProfileParameterLink.objects.filter(
-                #         profile=profile, parameters__in=params).exists():
-                #     pplink = ProfileParameterLink(profile=profile)
-                #     pplink.save()
-                #     pplink.parameters.add(*params)
-                return Response({
-                    'linked_parameters': profile.get_linked_profile_parameters()
-                }, status=status.HTTP_200_OK)
+            try:
+                param_id, linked_param_id = [
+                    request.data.get('value')[s] for s in
+                    ['parameter_id', 'linked_parameter_id']
+                ]
+            except (AttributeError, KeyError):
+                return Response({'error': 'invalid post data'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            profile_param = get_object_or_404(
+                ProfileParamUnitOption, parameter__id=param_id, profile=profile
+            )
+            linked_param = Parameter.objects.get(id=linked_param_id)
+            profile_param.linked_parameter = linked_param
+            profile_param.save()
 
-        return Response({'error': 'bad request'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        elif self.action == 'edit':
+            profile_params = [(get_object_or_404(
+                ProfileParamUnitOption, parameter__name=param_name,
+                profile=profile), linked_param_id)
+                for param_name, linked_param_id in request.data.items()]
+            for instance, param_id in profile_params:
+                try:
+                    instance.linked_parameter = Parameter.objects.get(
+                        id=param_id) if param_id else None
+                except Parameter.DoesNotExist:
+                    log.error(f'Lookup failed for param id: {param_id}')
+                    return Response({'error': 'invalid linked param id'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            for instance, id_ in profile_params:
+                instance.save()
+
+        else:
+            return Response({'error': 'Action param not match'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {'linked_parameters': profile.get_linked_profile_parameters()},
+            status=status.HTTP_200_OK
+        )

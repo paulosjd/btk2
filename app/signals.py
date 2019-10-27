@@ -7,12 +7,6 @@ from btk2 import settings
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def save_user_profile(sender, instance, **kwargs):
-    """ Updates a Profile instance when a User instance is updated """
-    instance.profile.save()
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_profile(sender, instance, created, **kwargs):
     """ Creates a Profile instance when a User instance is created """
     if created:
@@ -21,6 +15,12 @@ def create_user_profile(sender, instance, created, **kwargs):
 
         if getattr(instance, 'is_temporary', ''):
             create_temp_profile_data(profile)
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def save_user_profile(sender, instance, **kwargs):
+    """ Updates a Profile instance when a User instance is updated """
+    instance.profile.save()
 
 
 def create_temp_profile_data(profile):
@@ -57,5 +57,4 @@ def profile_param_unit_option_post_delete(sender, instance, *args, **kwargs):
                              parameter=instance.parameter)
         if not DataPoint.objects.filter(**filter_kwargs).exists():
             for obj in ProfileParamUnitOption.objects.filter(**filter_kwargs):
-                print('deleted')
                 obj.delete()

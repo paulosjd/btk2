@@ -71,7 +71,7 @@ class Profile(models.Model):
         ]
 
     def get_linked_profile_parameters(self):
-        return {a.parameter.name: a.linked_parameter.name 
+        return {a.parameter.name: a.linked_parameter.name
                 for a in self.profile_parameters.all() if a.linked_parameter}
 
     @classmethod

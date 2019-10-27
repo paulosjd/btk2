@@ -22,7 +22,6 @@ class EditDataPoints(BaseDataPointsView):
                                 k.endswith('_date')])
 
             if len(dp_ids) != len(unique_dates):
-                print('here!!')
                 return Response({'error': 'Ensure dates are unique'},
                                 status=status.HTTP_400_BAD_REQUEST)
             dp_records = DataPoint.objects.filter(id__in=dp_ids)
