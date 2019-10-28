@@ -19,8 +19,10 @@ class ProfileSummaryData(APIView):
     param_fields = ['name', 'upload_fields', 'upload_field_labels',
                     'num_values', 'ideal_info', 'ideal_info_url',
                     'available_unit_options', 'id']
-    profile_params = []
-    all_measurements = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.profile_params = []
 
     def get(self, request):
         profile = request.user.profile
@@ -82,7 +84,6 @@ class ProfileSummaryData(APIView):
         blank_param_items = [Item(obj['name'], None, None)
                              for obj in resp_data['blank_params']]
         profile_params = profile_summary_items + blank_param_items
-
         for obj in profile_params:
             try:
                 profile_param = ProfileParamUnitOption.objects.get(

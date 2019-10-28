@@ -2,6 +2,7 @@ import logging
 from collections import namedtuple
 
 from django.db import models
+from django.db.models import Q
 
 from app.models.unit_option import UnitOption
 from app.utils.calc_param_ideal import CalcParamIdeal
@@ -92,9 +93,9 @@ class ProfileParamUnitOption(models.Model):
 
     @classmethod
     def null_data_params(cls, profile):
-        excl_params = profile.summary_data().values_list('parameter')
         return cls.objects.filter(profile=profile).exclude(
-            parameter__in=excl_params).all()
+            parameter__in=profile.summary_data().values_list('parameter')
+        ).all()
 
     @staticmethod
     def get_unit_info(obj):

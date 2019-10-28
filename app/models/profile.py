@@ -18,15 +18,18 @@ class Profile(models.Model):
     )
     birth_year = models.IntegerField(
         default=0,
+        blank=True
     )
     height = models.IntegerField(
         default=0,
-        help_text='Height in cm'
+        help_text='Height in cm',
+        blank=True
     )
     gender = models.CharField(
         choices=[('', ' '), ('m', 'Male'), ('f', 'Female')],
         default='',
-        max_length=1
+        max_length=1,
+        blank=True
     )
 
     @property

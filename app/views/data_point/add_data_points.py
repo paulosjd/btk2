@@ -42,7 +42,6 @@ class AddDataPoints(BaseDataPointsView):
                            for field in param_fields + ['date']}
             except KeyError as e:
                 log.error(e)
-                print(e)
                 continue
             for k, v in dp_data.items():
                 try:
