@@ -15,9 +15,9 @@ class TargetUpdateView(APIView):
     def post(self, request):
         profile = request.user.profile
         post_data = request.data.get('value', {})
-        param_name, target_value, target_value2 = [post_data.get(s) for s in [
-            'param_name', 'target_value', 'target_value2']]
-        if not param_name or target_value is None and target_value2 is None:
+        param_id, target_value, target_value2 = [post_data.get(s) for s in [
+            'param_id', 'target_value', 'target_value2']]
+        if not param_id or target_value is None and target_value2 is None:
             return self.json_response(profile)
 
         if target_value == '':
@@ -35,7 +35,9 @@ class TargetUpdateView(APIView):
                 target_value2 = round(float(target_value2), 1)
             except ValueError:
                 return self.json_response(profile)
-        parameter = get_object_or_404(Parameter.objects, name=param_name)
+        parameter = get_object_or_404(
+            Parameter.objects.unfiltered(), id=param_id
+        )
 
         try:
             record = ProfileParamUnitOption.objects.get(
@@ -65,7 +67,7 @@ class TargetUpdateView(APIView):
             param_name = obj.parameter.name
             try:
                 profile_param = ProfileParamUnitOption.objects.get(
-                    parameter__name=param_name, profile=profile
+                    parameter__id=obj.parameter.id, profile=profile
                 )
             except ProfileParamUnitOption.DoesNotExist:
                 param_ideal = CalcParamIdeal(param_name, profile)

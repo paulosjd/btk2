@@ -19,7 +19,9 @@ class AddBookmarksView(BaseBookmarksView):
             bm_title and isinstance(bm_title, str) and len(bm_title) <= 50,
         ])
         if data_is_valid:
-            parameter = get_object_or_404(Parameter.objects, id=param_id)
+            parameter = get_object_or_404(
+                Parameter.objects.unfiltered(), id=param_id
+            )
             Bookmark.objects.create(
                 url=bm_url,
                 title=bm_title,
