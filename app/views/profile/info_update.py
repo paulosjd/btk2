@@ -10,7 +10,10 @@ class ProfileInfoUpdate(APIView):
 
     def get(self, request):
         serializer = self.serializer_class(request.user.profile)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'email': request.user.email,
+                         'is_verified': request.user.profile.email_confirmed,
+                         **serializer.data},
+                        status=status.HTTP_200_OK)
 
     def post(self, request):
         field_names = [('birth_year', 0), ('gender', ''), ('height', 0)]

@@ -31,6 +31,11 @@ class Profile(models.Model):
         max_length=1,
         blank=True
     )
+    # profile_shares =
+
+    @property
+    def pending_share_requests(self):
+        pass
 
     @property
     def age(self):
