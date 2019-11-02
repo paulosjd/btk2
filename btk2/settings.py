@@ -21,7 +21,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-
 ]
 
 AUTH_USER_MODEL = 'app.User'
@@ -34,7 +33,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'app.utils.auth_middleware.AuthenticationMiddlewareJWT'
 ]
 
 ROOT_URLCONF = 'btk2.urls'
@@ -42,7 +40,9 @@ ROOT_URLCONF = 'btk2.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            f'{BASE_DIR}/btk2/templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

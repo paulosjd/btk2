@@ -26,8 +26,8 @@ def send_username_reminder_email(email):
         return
     try:
         send_mail(
-            'MyApp username reminder',
-            f'Username for MyApp account registered to this email address '
+            'Body Metrics Tracker -- username reminder',
+            f'Username for the account registered to this email address '
             f'is: {user.username}', 'funcmols@gmail.com',
             [user.email], fail_silently=True,
         )
@@ -55,9 +55,9 @@ def send_password_reset_email(email_dct):
 
 
 @celery_app.task
-def send_verification_email(user_id):
+def send_verification_email(user_id, user=None):
     try:
-        user = User.objects.get(pk=user_id)
+        user = user or User.objects.get(pk=user_id)
         try:
             send_mail(
                 'test_subject',

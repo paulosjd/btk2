@@ -12,7 +12,7 @@ from .views.profile import (
 )
 from .views.user import (
     DemoRegistrationAPIView, EmailEditView, LoginHelp, PasswordReset,
-    RegistrationAPIView
+    RegistrationAPIView, NewVerificationEmail
 )
 
 
@@ -36,6 +36,7 @@ urlpatterns = [
     path('users/demo/registration', DemoRegistrationAPIView.as_view()),
     path('users/email/edit', EmailEditView.as_view()),
     path('users/help/<forgot>', LoginHelp.as_view()),
+    path('users/new-verification-email', NewVerificationEmail.as_view()),
     path('users/password-reset', PasswordReset.as_view()),
     path('users/registration', RegistrationAPIView.as_view()),
 ]
