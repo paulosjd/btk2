@@ -1,17 +1,11 @@
 from django.contrib.auth import login, get_user_model
-
+from django.contrib.auth.views import PasswordResetCompleteView
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail, BadHeaderError
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
+from django.shortcuts import redirect, render
 from django.utils import six
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
 
-from django.http import JsonResponse
-from django.views.generic import View
+from .settings import FRONTEND_HOME
 
 User = get_user_model()
 
@@ -38,13 +32,17 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.profile.email_confirmed = True
         user.save()
-        login(request, user,
-              backend='django.contrib.auth.backends.ModelBackend')
-        return JsonResponse({'foo': 'bar'})
-        # send back token etc ... enable redirect to logged in app
+        login(request, user)
+        # return JsonResponse({'foo': 'bar'})
+        return redirect(FRONTEND_HOME)
+
     else:
-        return JsonResponse({'foo': 'bar'})
+        return render(request, 'account_activation_invalid.html')
 
 
-def account_activation_sent(request):
-    return JsonResponse({'foo': 'bar'})
+class PasswordResetIsCompleteView(PasswordResetCompleteView):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['home_login'] = FRONTEND_HOME + '/login'
+        return context

@@ -9,7 +9,11 @@ SECRET_KEY = os.environ.get('secret_key')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', ]
+DEFAULT_DOMAIN = 'localhost'
+
+FRONTEND_HOME = 'http://localhost:3000'
+
+ALLOWED_HOSTS = ['127.0.0.1', DEFAULT_DOMAIN, ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',

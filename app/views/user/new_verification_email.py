@@ -8,5 +8,5 @@ from app.tasks.user_registration import send_verification_email
 class NewVerificationEmail(APIView):
 
     def get(self, request):
-        send_verification_email.delay(None, request.user)
+        send_verification_email.delay(request.user.id)
         return Response({'status': 'Success'}, status=status.HTTP_200_OK)
