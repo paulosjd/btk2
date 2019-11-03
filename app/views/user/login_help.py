@@ -27,5 +27,5 @@ class LoginHelp(APIView):
         if self.forgot == 'password':
             send_password_reset_email.delay(email['email'])
         else:
-            send_username_reminder_email.delay({'email': email})
+            send_username_reminder_email.delay(email['email'])
         return Response({'status': 'Success'}, status=status.HTTP_200_OK)

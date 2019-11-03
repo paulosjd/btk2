@@ -11,8 +11,8 @@ from .views.profile import (
     TargetUpdateView,
 )
 from .views.user import (
-    DemoRegistrationAPIView, EmailEditView, LoginHelp, PasswordReset,
-    RegistrationAPIView, NewVerificationEmail
+    DeleteUserView, DemoRegistrationAPIView, EmailEditView, LoginHelp,
+    PasswordReset, RegistrationAPIView, NewVerificationEmail
 )
 
 
@@ -33,6 +33,7 @@ urlpatterns = [
     path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
     path('profile/target-update', TargetUpdateView.as_view()),
 
+    path('users/confirm-delete', DeleteUserView.as_view()),
     path('users/demo/registration', DemoRegistrationAPIView.as_view()),
     path('users/email/edit', EmailEditView.as_view()),
     path('users/help/<forgot>', LoginHelp.as_view()),

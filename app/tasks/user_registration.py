@@ -10,7 +10,7 @@ from django.utils.http import urlsafe_base64_encode
 
 from btk2.activate import account_activation_token
 from btk2.celery import celery_app
-from btk2.settings import DEFAULT_DOMAIN
+from btk2.settings import DEFAULT_DOMAIN, EMAIL_HOST_USER, FRONTEND_HOME
 
 log = get_task_logger(__name__)
 
@@ -29,11 +29,13 @@ def send_username_reminder_email(email):
         user = User.objects.get(email=email)
     except ObjectDoesNotExist:
         return
+    tmpl_c = {'username': user.username, 'home_login': FRONTEND_HOME + '/login'}
+    email_body = render_to_string('username_reminder.html', tmpl_c)
+
     try:
         send_mail(
-            'Body Metrics Tracker -- username reminder',
-            f'Username for the account registered to this email address '
-            f'is: {user.username}', 'funcmols@gmail.com',
+            'Body Metrics Tracker - username reminder',
+            email_body, EMAIL_HOST_USER,
             [user.email], fail_silently=True,
         )
     except IOError as e:
@@ -42,7 +44,7 @@ def send_username_reminder_email(email):
 
 @celery_app.task
 def send_password_reset_email(email_dct):
-    """ Invokes Django ...
+    """ Invokes Django builtin password reset functionality
     :param email_dct: dict with an 'email' key for an email address string
     :type email_dct: dict
     :return None
@@ -57,7 +59,8 @@ def send_password_reset_email(email_dct):
         form.save(
             request=request,
             use_https=False,
-            from_email='funcmols@gmail.com',
+            from_email=EMAIL_HOST_USER,
+            subject_template_name='password_reset_subject.txt'
         )
 
 
@@ -67,14 +70,14 @@ def send_verification_email(user_id):
         user = User.objects.get(pk=user_id)
         tmpl_c = {
             'user': user,
-            'domain': f'http://{DEFAULT_DOMAIN}:8000',
+            'domain': f'http://{DEFAULT_DOMAIN}',
             'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode(),
             'token': account_activation_token.make_token(user),
         }
         email_body = render_to_string('account_activation_email.html', tmpl_c)
         try:
             send_mail(
-                'test_subject', email_body, 'funcmols@gmail.com', [user.email],
+                'test_subject', email_body, EMAIL_HOST_USER, [user.email],
                 fail_silently=False,
             )
         except IOError as e:

@@ -33,11 +33,9 @@ def activate(request, uidb64, token):
         user.profile.email_confirmed = True
         user.save()
         login(request, user)
-        # return JsonResponse({'foo': 'bar'})
         return redirect(FRONTEND_HOME)
 
-    else:
-        return render(request, 'account_activation_invalid.html')
+    return render(request, 'account_activation_invalid.html')
 
 
 class PasswordResetIsCompleteView(PasswordResetCompleteView):

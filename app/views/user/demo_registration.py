@@ -1,17 +1,17 @@
+import uuid
 from calendar import timegm
 from datetime import datetime
-import uuid
 
-from django.contrib.auth import get_user_model
 import jwt
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_jwt.settings import api_settings
 
-from btk2.settings import SECRET_KEY
 from app.serializers import RegistrationSerializer
+from btk2.settings import SECRET_KEY
 
 User = get_user_model()
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER

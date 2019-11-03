@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth
 from django.urls import include, path, re_path
-from rest_framework_jwt.views import obtain_jwt_token
-from rest_framework_jwt.views import refresh_jwt_token
-from rest_framework_jwt.views import verify_jwt_token
+from rest_framework_jwt.views import (
+    obtain_jwt_token, refresh_jwt_token, verify_jwt_token
+)
 
 from .activate import activate, PasswordResetIsCompleteView
 
