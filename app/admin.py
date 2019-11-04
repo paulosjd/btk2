@@ -7,7 +7,7 @@ from .forms import (
 )
 from .models import (
     Bookmark, DataPoint, Parameter, Profile, ProfileParamUnitOption,
-    UnitOption, User
+    ProfileShare, UnitOption, User
 )
 
 admin.site.register(User, CustomUserAdmin)
@@ -43,6 +43,11 @@ class ProfileAdmin(admin.ModelAdmin):
 @admin.register(ProfileParamUnitOption)
 class ProfileParamUnitOptionAdmin(admin.ModelAdmin):
     list_filter = [ProfileParamUnitOptionFilter]
+
+
+@admin.register(ProfileShare)
+class ProfileShareAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(UnitOption)

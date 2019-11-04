@@ -7,8 +7,8 @@ from .views.data_point.edit_data_points import EditDataPoints
 from .views.data_point.qualifying_text import QualifyingTextCrudView
 from .views.profile import (
     AddBookmarksView, CustomMetricAdd, EditBookmarksView, LinkedParamCrud,
-    MenuItemAdd, ParamColorsUpdateView, ProfileInfoUpdate, ProfileSummaryData,
-    TargetUpdateView,
+    MenuItemAdd, ParamColorsUpdateView, ProfileShareMenu, ProfileInfoUpdate,
+    ProfileSummaryData, TargetUpdateView,
 )
 from .views.user import (
     DeleteUserView, DemoRegistrationAPIView, EmailEditView, LoginHelp,
@@ -30,6 +30,7 @@ urlpatterns = [
     path('profile/menu-item-add', MenuItemAdd.as_view()),
     path('profile/linked-param/<action>', LinkedParamCrud.as_view()),
     path('profile/param-colors', ParamColorsUpdateView.as_view()),
+    path('profile/profile-share', ProfileShareMenu.as_view()),
     path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
     path('profile/target-update', TargetUpdateView.as_view()),
 

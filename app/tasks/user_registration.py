@@ -1,8 +1,8 @@
 from celery.utils.log import get_task_logger
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -77,7 +77,8 @@ def send_verification_email(user_id):
         email_body = render_to_string('account_activation_email.html', tmpl_c)
         try:
             send_mail(
-                'test_subject', email_body, EMAIL_HOST_USER, [user.email],
+                'Verify your Health Metric Tracker profile',
+                email_body, EMAIL_HOST_USER, [user.email],
                 fail_silently=False,
             )
         except IOError as e:
