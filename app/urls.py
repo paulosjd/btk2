@@ -30,7 +30,9 @@ urlpatterns = [
     path('profile/menu-item-add', MenuItemAdd.as_view()),
     path('profile/linked-param/<action>', LinkedParamCrud.as_view()),
     path('profile/param-colors', ParamColorsUpdateView.as_view()),
-    path('profile/profile-share', ProfileShareMenu.as_view()),
+    path('profile/profile-share/', ProfileShareMenu.as_view()),  # GET
+    path('profile/profile-share/<action>', ProfileShareMenu.as_view()),  # POST
+    path('profile/profile-search/<search>', ProfileShareMenu.as_view()),  # GET
     path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
     path('profile/target-update', TargetUpdateView.as_view()),
 

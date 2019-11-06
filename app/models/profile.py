@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db import models
 
+from .managers.profile_manager import ProfileManager
 from .parameter import Parameter
 from .profile_parameter import ProfileParamUnitOption
 from .user import User
@@ -32,6 +33,7 @@ class Profile(models.Model):
         blank=True
     )
     # profile_shares =
+    objects = ProfileManager()
 
     @property
     def pending_share_requests(self):

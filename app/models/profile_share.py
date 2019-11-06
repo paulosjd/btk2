@@ -1,4 +1,8 @@
+import logging
+
 from django.db import models
+
+log = logging.getLogger(__name__)
 
 
 class ProfileShare(models.Model):
@@ -22,6 +26,9 @@ class ProfileShare(models.Model):
         on_delete=models.CASCADE,
         related_name='shares_received',
     )
+
+    class Meta:
+        unique_together = ('requester', 'receiver')
 
     def __str__(self):
         return f'ProfileShare: {self.requester} - {self.receiver}'
