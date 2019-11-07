@@ -1,15 +1,15 @@
 from datetime import datetime
+from typing import List, Optional
 
 from django.db import models
 
 from .managers.profile_manager import ProfileManager
-from .parameter import Parameter
 from .profile_parameter import ProfileParamUnitOption
 from .user import User
 
 
 class Profile(models.Model):
-    """ A model representing a User and their activity """
+    """ A model representing a User, which links to their activity and data """
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -32,28 +32,15 @@ class Profile(models.Model):
         max_length=1,
         blank=True
     )
-    # profile_shares =
     objects = ProfileManager()
 
     @property
-    def pending_share_requests(self):
-        pass
-
-    @property
-    def age(self):
+    def age(self) -> Optional[int]:
         if self.birth_year:
             return datetime.now().year - self.birth_year
 
     def __str__(self):
         return self.user.username + '_profile'
-
-    def available_parameters(self):
-        return Parameter.objects.union(
-            Parameter.objects.custom_parameters().filter(profile=self))
-
-    def available_unit(self):
-        return Parameter.objects.union(
-            Parameter.objects.custom_parameters().filter(profile=self))
 
     def all_datapoints(self):
         return self.user_datapoints.order_by(
@@ -63,32 +50,11 @@ class Profile(models.Model):
         return self.user_datapoints.order_by(
             'parameter', '-date').distinct('parameter')
 
-    def param_unit_options(self):
-        return self.unit_options.order_by(
-            'parameter').distinct('parameter')
-
-    def all_bookmarks(self):
-        return self.user_datapoints.order_by(
-            'parameter', '-date').all()
-
-    def get_bookmarks_data(self):
-        return [
-            {**{field: getattr(obj, field) for field in
-             ['id', 'url', 'title', 'parameter_id']},
-             **{'param_id': obj.parameter.id,
-                'param_name': obj.parameter.name}}
-            for obj in self.user_bookmarks.all()
-        ]
-
     def get_linked_profile_parameters(self):
         return {a.parameter.name: a.linked_parameter.name
                 for a in self.profile_parameters.all() if a.linked_parameter}
 
-    @classmethod
-    def create_demo_user(cls):
-        cls.objects.create(is_temporary=True)
-
-    def get_summary_data(self):
+    def get_summary_data(self) -> List[dict]:
         fields = ['name', 'upload_fields', 'upload_field_labels', 'ideal_info',
                   'ideal_info_url', 'id', 'num_values'] + \
                  [f'value2_short_label_{i}' for i in [1, 2]]
@@ -103,3 +69,23 @@ class Profile(models.Model):
             'data_point': {field: getattr(obj, field)
                            for field in ['date', 'value', 'value2']},
         } for i, obj in enumerate(summary_qs)]
+
+    def get_share_requests(self, request_type='') -> List[dict]:
+        child_fk, name_suffix = 'requester', 'received'
+        if request_type == 'made':
+            child_fk, name_suffix = 'receiver', 'requested'
+        return [a.get_id_and_profile_name(child_fk) for a in
+                getattr(self, f'shares_{name_suffix}').filter(enabled=False)]
+
+    def get_bookmarks_data(self) -> List[dict]:
+        return [
+            {**{field: getattr(obj, field) for field in
+             ['id', 'url', 'title', 'parameter_id']},
+             **{'param_id': obj.parameter.id,
+                'param_name': obj.parameter.name}}
+            for obj in self.user_bookmarks.all()
+        ]
+
+    @classmethod
+    def create_demo_user(cls):
+        cls.objects.create(is_temporary=True)

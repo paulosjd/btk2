@@ -26,7 +26,7 @@ class Parameter(models.Model):
     )
     num_values = models.IntegerField(
         choices=[(1, '1'), (2, '2')],
-        help_text='Indicates whether the DataPoint uses optional second value',
+        help_text='Whether ',
         default=1,
         verbose_name='Number of DataPoint values'
     )
