@@ -2,13 +2,10 @@
 btk2
 =====
 
-Polls is a simple Django app to conduct Web-based polls. For each
-question, visitors can choose between a fixed number of answers.
+Serves as backend for a [web application](http://mysite.com) used to track individuals health metrics.
 
-Detailed documentation is in the "docs" directory.
-
-Django Rest Framework based API which uses JSON web token for authentication
-and Celery/Redis for running background tasks.
+API which uses JSON web token for authentication.
+Third party libraries include Django 2.1, Django Rest Framework 3.5, Postgres Celery/Redis for running background tasks.
 
 Quick start
 -----------

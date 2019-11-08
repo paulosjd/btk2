@@ -35,28 +35,40 @@ class ProfileShareMenu(APIView):
         if not self.search_text:
             return self.profile_data_response(profile)
 
-        qs = Profile.objects.verified().filter(
-            user__username__icontains=self.search_text,
-        ).exclude(id=profile.id).exclude(
-            id__in=profile.shares_requested.values_list('receiver_id')
-        ).annotate(name=F('user__username')).values('id', 'name')
-        return Response(qs, status=status.HTTP_200_OK)
+        return Response(
+            Profile.objects.verified().filter(
+                user__username__icontains=self.search_text,
+            ).exclude(id=profile.id).exclude(
+                id__in=profile.shares_requested.values_list('receiver_id')
+            ).annotate(name=F('user__username')).values('id', 'name'),
+            status=status.HTTP_200_OK
+        )
 
     def post(self, request):
         print(request.data)
         profile = request.user.profile
-        if self.action not in ['request', 'accept']:
-            return Response({'error': 'Param not in [request, accept]'},
+        if self.action not in ['request', 'accept', 'delete']:
+            return Response({'error': 'Param not in [request, accept, delete]'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        if self.action == 'request' and request.data.get('profile_id'):
-            rec = get_object_or_404(Profile.objects,
-                                    id=request.data['profile_id'])
-            ProfileShare.objects.create(requester=profile, receiver=rec,
+        if self.action == 'request':
+            receiver = get_object_or_404(
+                Profile.objects,
+                id=request.data.get('profile_id')
+            )
+            ProfileShare.objects.create(requester=profile, receiver=receiver,
                                         message=request.data.get('message', ''))
             return self.profile_data_response(profile)
 
-        if 3 == request:
-            return Response({}, status=status.HTTP_200_OK)
-        return Response({'status': 'Bad request'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        instance = get_object_or_404(
+            ProfileShare,
+            id=request.data.get('profile_share_id')
+        )
+
+        if self.action == 'delete':
+            instance.delete()
+        else:
+            instance.enabled = True
+            instance.save()
+
+        return self.profile_data_response(profile)

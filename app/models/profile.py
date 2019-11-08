@@ -9,7 +9,7 @@ from .user import User
 
 
 class Profile(models.Model):
-    """ A model representing a User, which links to their activity and data """
+    """ A model representing a User. Links to their activity and data. """
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -70,7 +70,7 @@ class Profile(models.Model):
                            for field in ['date', 'value', 'value2']},
         } for i, obj in enumerate(summary_qs)]
 
-    def get_share_requests(self, request_type='') -> List[dict]:
+    def get_share_requests(self, request_type: str = '') -> List[dict]:
         child_fk, name_suffix = 'requester', 'received'
         if request_type == 'made':
             child_fk, name_suffix = 'receiver', 'requested'
