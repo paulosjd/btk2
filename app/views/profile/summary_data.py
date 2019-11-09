@@ -34,6 +34,7 @@ class ProfileSummaryData(APIView):
             resp_data = {k: v.data for k, v in serializers.items()}
             null_data_params = ProfileParamUnitOption.null_data_params(profile)
             resp_data.update({
+                'share_requests_received': profile.get_share_requests(),
                 'date_formats': Parameter.date_formats,
                 'linked_parameters': profile.get_linked_profile_parameters(),
                 'blank_params':

@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import itemgetter
 from typing import List, Optional
 
 from django.db import models
@@ -70,12 +71,21 @@ class Profile(models.Model):
                            for field in ['date', 'value', 'value2']},
         } for i, obj in enumerate(summary_qs)]
 
-    def get_share_requests(self, request_type: str = '') -> List[dict]:
+    def get_share_requests(self, request_type='', active=False) -> List[dict]:
         child_fk, name_suffix = 'requester', 'received'
         if request_type == 'made':
             child_fk, name_suffix = 'receiver', 'requested'
         return [a.get_id_and_profile_name(child_fk) for a in
-                getattr(self, f'shares_{name_suffix}').filter(enabled=False)]
+                getattr(self, f'shares_{name_suffix}').filter(enabled=active)]
+
+    def get_active_shares(self) -> List[dict]:
+        active_shares = []
+        for s in ['made', '']:
+            for dct in self.get_share_requests(s, active=True):
+                active_shares.append(
+                    {k if k == 'id' else 'name': v for k, v in dct.items()}
+                )
+        return list(sorted(active_shares, key=itemgetter('name')))
 
     def get_bookmarks_data(self) -> List[dict]:
         return [

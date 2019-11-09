@@ -26,6 +26,7 @@ class ProfileShareMenu(APIView):
         serializer = self.serializer_class(profile)
         return Response(
             {'is_verified': profile.email_confirmed,
+             'active_shares': profile.get_active_shares(),
              'share_requests_received': profile.get_share_requests(),
              'share_requests_made': profile.get_share_requests('made'),
              **serializer.data}, status=status.HTTP_200_OK)
