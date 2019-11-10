@@ -2,7 +2,6 @@ import logging
 from collections import namedtuple
 
 from django.db import models
-from django.db.models import Q
 
 from app.models.unit_option import UnitOption
 from app.utils.calc_param_ideal import CalcParamIdeal

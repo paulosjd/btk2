@@ -30,12 +30,18 @@ class ProfileSummaryData(APIView):
         profile_id = kwargs.pop('profile_id', '')
         if profile_id.isdigit():
             self.shared_profile = get_object_or_404(Profile, id=profile_id)
-            print(self.shared_profile)
-            print(request.user.profile.id in [a['profile_id'] for a in self.shared_profile.get_active_shares()])
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
         profile = request.user.profile
+
+        if self.shared_profile:
+            if profile.id not in [a['profile_id'] for a in
+                                  self.shared_profile.get_active_shares()]:
+                return Response({'status': 'Bad request'},
+                                status=status.HTTP_401_UNAUTHORIZED)
+            profile = self.shared_profile
+
         serializers = dict(zip(
             ['profile_summary', 'all_params', 'datapoints', 'bookmarks'],
             self.get_serializers(profile)
@@ -45,6 +51,7 @@ class ProfileSummaryData(APIView):
             null_data_params = ProfileParamUnitOption.null_data_params(profile)
             resp_data.update({
                 'share_requests_received': profile.get_share_requests(),
+                'is_shared_view': self.shared_profile is not None,
                 'date_formats': Parameter.date_formats,
                 'linked_parameters': profile.get_linked_profile_parameters(),
                 'blank_params':
