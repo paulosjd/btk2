@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from pandas import date_range, Timedelta, Timestamp
 
@@ -25,7 +26,7 @@ def get_interpolated_values(day_diffs, data_points, name):
     return values
 
 
-def get_monthly_means(data_points, extra=None):
+def get_monthly_means(data_points: List[dict], extra=None) -> List[dict]:
     """
     :param data_points: list of dictionaries containing keys 'date' and 'value'
       and whose 'date' keys are within start_date and end_date

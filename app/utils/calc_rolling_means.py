@@ -1,11 +1,12 @@
 import logging
+from typing import List
 
 import pandas as pd
 
 log = logging.getLogger(__name__)
 
 
-def get_rolling_mean(data_points, extra=None):
+def get_rolling_mean(data_points: List[dict], extra=None) -> List[dict]:
     """
     :param data_points: list of dictionaries containing keys 'date' and 'value'
       and whose 'date' keys are within start_date and end_date

@@ -38,5 +38,7 @@ class ProfileShare(models.Model):
             return
         super(ProfileShare, self).save(**kwargs)
 
-    def get_id_and_profile_name(self, fk_type: str = 'requester') -> dict:
-        return {'id': self.id, fk_type: getattr(self, fk_type).user.username}
+    def get_id_and_profile(self, fk_type: str = 'requester') -> dict:
+        return {'id': self.id,
+                'profile_id': getattr(self, fk_type).id,
+                fk_type: getattr(self, fk_type).user.username}

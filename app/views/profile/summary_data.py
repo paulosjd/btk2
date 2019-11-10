@@ -1,11 +1,12 @@
 import logging
 from collections import namedtuple
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import Parameter, ProfileParamUnitOption
+from app.models import Parameter, Profile, ProfileParamUnitOption
 from app.serializers import (
     BookmarkSerializer, DataPointSerializer, ParameterSerializer,
     SummaryDataSerializer
@@ -23,6 +24,15 @@ class ProfileSummaryData(APIView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.profile_params = []
+        self.shared_profile = None
+
+    def dispatch(self, request, *args, **kwargs):
+        profile_id = kwargs.pop('profile_id', '')
+        if profile_id.isdigit():
+            self.shared_profile = get_object_or_404(Profile, id=profile_id)
+            print(self.shared_profile)
+            print(request.user.profile.id in [a['profile_id'] for a in self.shared_profile.get_active_shares()])
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
         profile = request.user.profile

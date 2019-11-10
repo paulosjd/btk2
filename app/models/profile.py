@@ -44,8 +44,7 @@ class Profile(models.Model):
         return self.user.username + '_profile'
 
     def all_datapoints(self):
-        return self.user_datapoints.order_by(
-            'parameter', '-date').all()
+        return self.user_datapoints.order_by('parameter', '-date').all()
 
     def summary_data(self):
         return self.user_datapoints.order_by(
@@ -75,7 +74,7 @@ class Profile(models.Model):
         child_fk, name_suffix = 'requester', 'received'
         if request_type == 'made':
             child_fk, name_suffix = 'receiver', 'requested'
-        return [a.get_id_and_profile_name(child_fk) for a in
+        return [a.get_id_and_profile(child_fk) for a in
                 getattr(self, f'shares_{name_suffix}').filter(enabled=active)]
 
     def get_active_shares(self) -> List[dict]:
@@ -83,7 +82,8 @@ class Profile(models.Model):
         for s in ['made', '']:
             for dct in self.get_share_requests(s, active=True):
                 active_shares.append(
-                    {k if k == 'id' else 'name': v for k, v in dct.items()}
+                    {k if k in ['id', 'profile_id'] else 'name': v
+                     for k, v in dct.items()}
                 )
         return list(sorted(active_shares, key=itemgetter('name')))
 

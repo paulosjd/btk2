@@ -15,7 +15,6 @@ from .views.user import (
     PasswordReset, RegistrationAPIView, NewVerificationEmail
 )
 
-
 urlpatterns = [
     path('datapoints/add', AddDataPoints.as_view()),
     path('datapoints/download', CsvDownloadView.as_view()),
@@ -34,6 +33,7 @@ urlpatterns = [
     path('profile/profile-share/<action>', ProfileShareMenu.as_view()),  # POST
     path('profile/profile-search/<search>', ProfileShareMenu.as_view()),  # GET
     path('profile/summary', ProfileSummaryData.as_view(), name='summary'),
+    path('profile/shared-summary/<profile_id>', ProfileSummaryData.as_view()),
     path('profile/target-update', TargetUpdateView.as_view()),
 
     path('users/confirm-delete', DeleteUserView.as_view()),

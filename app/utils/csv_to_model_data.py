@@ -1,13 +1,14 @@
 import csv
 from collections import namedtuple
 from datetime import date, datetime
+from typing import BinaryIO, Optional
 
 
 class CsvToModelData:
     """ Designed for usage whereby iterate over if validated """
     field_types_map = {'date': date, 'value': float, 'value2': float}
 
-    def __init__(self, csvfile: str, meta: dict):
+    def __init__(self, csvfile: BinaryIO, meta: dict) -> None:
         """
         :param csvfile: csv file object
         :param meta: dict with processing info
@@ -29,7 +30,7 @@ class CsvToModelData:
         DataObj = namedtuple('CsvDataObj', self.meta.get('field_order'))
         return iter(DataObj(*x) for x in self._model_data)
 
-    def process_csv(self):
+    def process_csv(self) -> Optional[bool]:
         try:
             fp = self.csvfile.read().decode('ISO-8859-1').splitlines()
         except AttributeError:
@@ -40,14 +41,14 @@ class CsvToModelData:
             self._model_data = csv_data
 
     @property
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if not self._model_data:
             self.process_csv()
         if self._model_data and not self.error:
             return True
         return False
 
-    def shape_isvalid(self, data):
+    def shape_isvalid(self, data: list) -> bool:
         """ Performs basic validation and cleaning of the shape of the data.
         :param data list obtained from csv reader
         :return boolean
@@ -77,7 +78,7 @@ class CsvToModelData:
 
         return True
 
-    def data_isvalid(self, data):
+    def data_isvalid(self, data: list) -> Optional[bool]:
         """ Attempts to cast values into their expected types
         :param data list obtained from csv reader
         :return boolean
