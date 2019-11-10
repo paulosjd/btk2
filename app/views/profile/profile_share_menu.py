@@ -36,17 +36,19 @@ class ProfileShareMenu(APIView):
         if not self.search_text:
             return self.profile_data_response(profile)
 
-        return Response(
-            Profile.objects.verified().filter(
+        profile_qs = Profile.objects.verified().filter(
                 user__username__icontains=self.search_text,
-            ).exclude(id=profile.id).exclude(
+            ).exclude(
+                id=profile.id
+            ).exclude(
                 id__in=profile.shares_requested.values_list('receiver_id')
-            ).annotate(name=F('user__username')).values('id', 'name'),
-            status=status.HTTP_200_OK
-        )
+            ).exclude(
+                id__in=[a['profile_id'] for a in profile.get_active_shares()]
+            ).annotate(name=F('user__username')).values('id', 'name')
+
+        return Response(profile_qs, status=status.HTTP_200_OK)
 
     def post(self, request):
-        print(request.data)
         profile = request.user.profile
         if self.action not in ['request', 'accept', 'delete']:
             return Response({'error': 'Param not in [request, accept, delete]'},
@@ -57,8 +59,10 @@ class ProfileShareMenu(APIView):
                 Profile.objects,
                 id=request.data.get('profile_id')
             )
-            ProfileShare.objects.create(requester=profile, receiver=receiver,
-                                        message=request.data.get('message', ''))
+            ProfileShare.objects.create(
+                requester=profile, receiver=receiver,
+                message=request.data.get('message', '')
+            )
             return self.profile_data_response(profile)
 
         instance = get_object_or_404(
