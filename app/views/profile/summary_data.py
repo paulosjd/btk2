@@ -64,6 +64,10 @@ class ProfileSummaryData(APIView):
             self.update_with_ideals_data(resp_data, profile)
             self.update_with_units_options(resp_data)
             self.update_with_stats_data(resp_data)
+            if self.shared_profile:
+                resp_data.update({
+                    'share_view_username': self.shared_profile.user.username
+                })
             return Response(resp_data, status=status.HTTP_200_OK)
         return Response({'status': 'Bad request',
                          'errors': serializers['profile_summary'].errors},
@@ -99,8 +103,8 @@ class ProfileSummaryData(APIView):
                  *[obj['data_point'][k] for k in ['value', 'value2']])
             for obj in resp_data['profile_summary']
         ]
-        blank_param_items = [Item(obj['name'], None, None)
-                             for obj in resp_data['blank_params']]
+        blank_param_items = [Item(d['name'], None, None)
+                             for d in resp_data['blank_params']]
         profile_params = profile_summary_items + blank_param_items
         for obj in profile_params:
             try:

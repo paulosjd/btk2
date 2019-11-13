@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, DataError, IntegrityError
 from django.db.models import Q
 
-from .managers.parameter_manager import ParameterManager
+from app.models.managers.parameter_manager import ParameterManager
 
 
 class Parameter(models.Model):
