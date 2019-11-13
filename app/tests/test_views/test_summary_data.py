@@ -1,100 +1,126 @@
-from copy import deepcopy
+from collections import namedtuple
 from unittest.mock import patch
 
-from django.core.exceptions import ValidationError
-from django.test import TestCase
+from rest_framework.test import force_authenticate
 
-# from app.models import Odorant
-
-
-class MockPubChemPyObject:
-    def __init__(self, synonyms, cid=1234):
-        self.synonyms = synonyms
-        self.cid = cid
+from app.tests.base import BaseTestCase
+from app.tests.mock_objects import LazyAttrObj, MockObj, MockRequest
+from app.views.profile.summary_data import ProfileSummaryData
 
 
-class SummaryDataTestCase(TestCase):
+class SummaryDataTestCase(BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SummaryDataTestCase, cls).setUpClass()
-        cls.cpd_data = {'cas_number': '26252-11-9', 'cid_number': 1234,
-                        'smiles': 'CCCCCC(O)C(/C)=C/CC', 'iupac_name': '(e)-4-methyldec-3-en-5-ol', }
-        # cls.compound = Odorant.objects.create(**cls.cpd_data)
-        # cpd_data2 = deepcopy(cls.cpd_data)
-        # cpd_data2.update({'cas_number': '123-456-78', 'trade_name': 'Undecavertol', 'supplier': 'Giv.'})
-        # cls.compound2 = Odorant.objects.create(**cpd_data2)
+    def setUp(self):
+        super().setUp()
+        self.view = ProfileSummaryData()
+        self.request = MockRequest(user=self.profile_1.user)
+        force_authenticate(self.request, user=self.profile_1.user)
 
+    def test_dispatch_with_profile_id_kwargs_not_provided(self):
+        self.view.dispatch(self.request)
+        self.assertIsNone(self.view.shared_profile)
 
-    # def test_cas_number_max_length(self):
-    #     max_length = self.compound._meta.get_field('cas_number').max_length
-    #     self.assertEqual(max_length, 20)
-    #
-    # @patch('odorants.models.compound.pcp.get_compounds')
-    # def test_synonyms_cached_property(self, pcp_patch):
-    #     synonyms = ['4-Methyldec-3-en-5-ol', '81782-77-6', 'Undecavertol', '3-Decen-5-ol',
-    #                 '4-methyl-(E)-4-methyldec-3-en-5-ol', '(E)-4-methyl-3-decen-5-ol', 'EINECS 279-815-0', 'figovert']
-    #     pcp_patch.return_value = [MockPubChemPyObject(synonyms)]
-    #     self.assertEqual(self.compound.synonyms, ', '.join(synonyms))
-    #
-    # @patch('odorants.models.compound.pcp.get_compounds')
-    # def test_synonyms_cached_property_handles_key_error(self, pcp_patch):
-    #     pcp_patch.return_value = []
-    #     self.assertEqual(self.compound2.synonyms, 'n/a')
-    #
-    # def test_structure_url_property(self):
-    #     self.assertEqual(self.compound.structure_url,
-    #                      'https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid={}&amp;t=l'.format(
-    #                          self.compound.cid_number))
-    #
-    # @patch('odorants.models.compound.pcp.get_compounds')
-    # def test_save_method_generates_cid_number(self, pcp_patch):
-    #     pcp_patch.return_value = [MockPubChemPyObject('synonyms', cid=5678)]
-    #     data = deepcopy(self.cpd_data)
-    #     data.update({'cid_number': '', 'cas_number': '123-345-678'})
-    #     compound = Odorant.objects.create(**data)
-    #     self.assertEqual(compound.cid_number, 5678)
-    #
-    # @patch('odorants.models.compound.pcp.get_compounds')
-    # def test_save_method_handles_no_cid_number_found(self, pcp_patch):
-    #     pcp_patch.side_effect = IndexError
-    #     data = deepcopy(self.cpd_data)
-    #     data.update({'cid_number': ''})
-    #     compound = Odorant(**data)
-    #     with self.assertRaises(ValidationError):
-    #         compound.save()
-    #
-    # def test_save_method_raises_validation_error_if_incomplete_data(self):
-    #     compound = Odorant(cas_number='123-456-78')
-    #     with self.assertRaises(ValidationError):
-    #         compound.save()
-    #
-    # def test_supplier_mixin_trade_name_max_length(self):
-    #     max_length = Odorant._meta.get_field('trade_name').max_length
-    #     self.assertEqual(max_length, 20)
-    #
-    # def test_supplier_mixin_trade_name_verbose_name(self):
-    #     verbose_name = Odorant._meta.get_field('trade_name').verbose_name
-    #     self.assertEqual(verbose_name, 'Trade name')
-    #
-    # @patch('odorants.models.compound.pcp.get_compounds')
-    # def test_supplier_clean_field_method(self, pcp_patch):
-    #     pcp_patch.return_value = [MockPubChemPyObject('synonyms', cid=5678)]
-    #     data = self.cpd_data.copy()
-    #     data.update({'supplier': Odorant.supplier_choices[0][0]})
-    #     compound = Odorant(**data)
-    #     with self.assertRaises(ValidationError):
-    #         compound.save()
-    #
-    # def test_substructure_matches_for_valid_matching_smiles_string(self):
-    #     output = Odorant.substructure_matches('CCCCCC(O)')
-    #     self.assertIn(self.compound.id, [a.id for a in output])
-    #     self.assertIsNone(Odorant.substructure_matches('invalid_smiles'))
-    #
-    # def test_str_method(self):
-    #     self.assertEqual(str(self.compound), self.compound.iupac_name)
-    #     self.assertEqual(str(self.compound2), '{} ({}) | {}'.format(
-    #         self.compound2.trade_name, self.compound2.supplier, self.compound2.iupac_name))
-    #
-    # def test_get_absolute_url(self):
-    #     self.assertEqual(self.compound.get_absolute_url(), '/odorants/compound/{}'.format(self.compound.id))
+    def test_dispatch_with_profile_id_kwargs_provided(self):
+        self.view.dispatch(self.request, profile_id=str(self.profile_1.id))
+        self.assertEqual(self.profile_1, self.view.shared_profile)
+
+    def test_get_method_with_view_has_shared_profile_auth_check(self):
+        SharedProfile = namedtuple('test_shared_prof', 'get_active_shares')
+        self.view.shared_profile = SharedProfile(lambda: [])
+        self.assertEqual(401, self.view.get(self.request).status_code)
+
+    @patch('app.views.profile.summary_data.ProfileSummaryData.get_serializers')
+    def test_get_method_with_view_has_shared_profile_bad_request(self, gs_pch):
+        SharedProfile = namedtuple('test_shared_prof', 'get_active_shares')
+        self.view.shared_profile = SharedProfile(
+            lambda: [{'profile_id': self.profile_1.id}]
+        )
+        MockSerializer = namedtuple('mock_ser', ['is_valid', 'errors'])
+        gs_pch.return_value = [MockSerializer(lambda: False, 'error_msg')
+                               for _ in range(4)]
+        self.assertEqual(400, self.view.get(self.request).status_code)
+
+    @patch('app.views.profile.summary_data.ProfileSummaryData.'
+           'update_with_ideals_data')
+    @patch('app.views.profile.summary_data.ProfileSummaryData.'
+           'update_with_units_options')
+    @patch('app.views.profile.summary_data.ProfileSummaryData.'
+           'update_with_stats_data')
+    @patch('app.views.profile.summary_data.ProfileParamUnitOption.'
+           'param_unit_opt_dct')
+    @patch('app.views.profile.summary_data.ProfileSummaryData.get_serializers')
+    def test_get_method_success_response(self, gs_pch, ppuo_pch, p1, p2, p3):
+        for s in ['get_share_requests', 'get_linked_profile_parameters']:
+            setattr(self.profile_1, s, lambda: '')
+        MockSerializer = namedtuple('mock_ser', ['is_valid', 'data'])
+        gs_pch.return_value = [MockSerializer(lambda: 1, '')
+                               for _ in range(4)]
+        resp = self.view.get(self.request)
+        self.assertEqual(200, resp.status_code)
+        for k in ['share_requests_received', 'date_formats',
+                  'share_requests_received', 'linked_parameters',
+                  'linked_parameters', 'blank_params']:
+            self.assertTrue(k in resp.data)
+        self.assertEqual(self.view.shared_profile is not None,
+                         resp.data['is_shared_view'])
+
+    @patch('app.views.profile.summary_data.BookmarkSerializer')
+    @patch('app.views.profile.summary_data.DataPointSerializer')
+    @patch('app.views.profile.summary_data.ParameterSerializer')
+    @patch('app.views.profile.summary_data.SummaryDataSerializer')
+    def test_get_serializers(self, p1, p2, p3, p4):
+        mock_param = MockObj(num_values=34, name='test_name')
+        nt_fields = ['parameter', 'id', 'date', 'value', 'value2', 'qualifier']
+        TestObj = namedtuple('param_nt', nt_fields)
+
+        def mock_all_datapoints():
+            return [TestObj(mock_param, *['' for _ in nt_fields[1:]])]
+        self.profile_1.all_datapoints = mock_all_datapoints
+        for s in ['get_bookmarks_data', 'get_summary_data']:
+            setattr(self.profile_1, s, lambda: '')
+        self.assertEqual(4, len(self.view.get_serializers(self.profile_1)))
+        for pch in [p1, p4]:
+            self.assertEqual({'data': '', 'many': True},
+                             getattr(pch, 'call_args')[1])
+
+    @patch('app.views.profile.summary_data.CalcParamIdeal')
+    def test_update_with_ideals_data(self, cpi_pch):
+        cpi_pch.return_value = MockObj(
+            get_ideal_data=lambda: {k: f'{k}_val' for k in ['ideal', 'ideal2']},
+            required_field=True, misc_data={'a': 'b', 'param_name': 'p_name'}
+        )
+        initial = {'blank_params': [{'name': 'no_unit_opt_exists_for_name'}],
+                   'profile_summary': []}
+        self.view.update_with_ideals_data(initial, self.profile_2)
+        self.assertEqual(
+            [{'saved': None, 'saved2': None, 'missing_field': True,
+              'misc_info': {'a': 'b', 'param_name': 'p_name'},
+              'param_name': 'no_unit_opt_exists_for_name',
+              'ideal': 'ideal_val', 'ideal2': 'ideal2_val',
+              'ideal_prepend': '', 'ideal2_prepend': ''}],
+            initial['ideals'])
+        self.assertEqual(
+            [namedtuple('ppo', ['param_name', 'pp_unit_option'])(
+                initial['blank_params'][0]['name'], None)],
+            self.view.profile_params
+        )
+
+    @patch('app.models.profile_parameter.ProfileParamUnitOption.'
+           'get_unit_info')
+    def test_update_with_units_options(self, gui_pch):
+        gui_pch.return_value = 'gui_mock'
+        self.view.profile_params = [LazyAttrObj()]
+        initial = {}
+        self.view.update_with_units_options(initial)
+        self.assertEqual({'unit_info': ['gui_mock']}, initial)
+
+    @patch('app.views.profile.summary_data.get_rolling_mean')
+    @patch('app.views.profile.summary_data.get_monthly_means')
+    def test_update_with_stats_data(self, gmm_pch, grm_pch):
+        initial = {'datapoints': [{'parameter': 'p1', 'val': 1},
+                                  {'parameter': 'p2', 'val': 2}]}
+        ProfileSummaryData.update_with_stats_data(initial)
+        self.assertEqual(initial['rolling_means'],
+                         [grm_pch.return_value for _ in initial['datapoints']])
+        self.assertEqual(initial['monthly_changes'],
+                         [gmm_pch.return_value for _ in initial['datapoints']])
