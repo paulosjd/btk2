@@ -1,5 +1,6 @@
 import csv
 import logging
+from typing import List
 
 from django.http import HttpResponse
 from rest_framework import status
@@ -14,8 +15,11 @@ log = logging.getLogger(__name__)
 
 class CsvDownloadView(APIView):
     serializer_class = DataPointSerializer
-    parameters = []
-    param_cols = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parameters = []
+        self.param_cols = {}
 
     def post(self, request):
         """
@@ -50,7 +54,7 @@ class CsvDownloadView(APIView):
         return Response({'error': 'Bad request'},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    def init(self, parameters, dt_fmt):
+    def init(self, parameters, dt_fmt) -> None:
         for param in parameters:
             param_dpts = DataPoint.objects.filter(
                 profile=self.request.user.profile, parameter=param
@@ -67,10 +71,8 @@ class CsvDownloadView(APIView):
             self.parameters, key=lambda x: len(self.param_cols[x.name])
         )))
 
-    def get_headers_labels(self):
-        """ Returns data for use by csv writer
-        :return: list of strings
-        """
+    def get_headers_labels(self) -> List[str]:
+        """ Returns data for use by csv writer """
         header_labels = []
         first = True
 
@@ -91,7 +93,7 @@ class CsvDownloadView(APIView):
 
         return header_labels
 
-    def get_rows(self):
+    def get_rows(self) -> List[List[str]]:
         """ Returns list of lists containing strings used by csv writer """
         rows = []
         max_col_len = max([len(i) for i in self.param_cols.values()])

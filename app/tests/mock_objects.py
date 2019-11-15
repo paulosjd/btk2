@@ -27,7 +27,8 @@ class LazyAttrObj(BaseMockObj):
 
 
 class MockRequest(HttpRequest):
-    def __init__(self, method='GET', user=None):
+    def __init__(self, method='GET', data=None, user=None):
         super().__init__()
         self.method = method
         self.user = user
+        self.data = data or {}

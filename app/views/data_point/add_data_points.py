@@ -32,7 +32,6 @@ class AddDataPoints(BaseDataPointsView):
         return self.json_response()
 
     def process_post_data(self, form_data, parameter):
-
         param_fields = parameter.upload_fields.split(', ')
         row_nums = set([k.split('_')[0] for k in form_data.keys()
                         if k and k.split('_')[0].isdigit()])
@@ -48,10 +47,9 @@ class AddDataPoints(BaseDataPointsView):
                     dp_data[k] = datetime.strptime(dp_data[k], '%Y-%m-%d') \
                         if k == 'date' else round(float(dp_data[k]), 2)
                 except ValueError:
-                    continue
+                    dp_data[k] = None
             if not all(dp_data.values()):
                 continue
-
             DataPoint.update_on_date_match_or_create(
                 parameter=parameter, profile=self.request.user.profile,
                 **dp_data
