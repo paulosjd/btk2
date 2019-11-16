@@ -2,7 +2,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from app.models import DataPoint, Profile, ProfileParamUnitOption, UnitOption
-from app.tasks.user_registration import send_verification_email
+from app.tasks.user_admin import send_verification_email
 from btk2 import settings
 
 
@@ -25,6 +25,9 @@ def save_user_profile(sender, instance, **kwargs):
 
 def create_temp_profile_data(profile):
     demo_profile = Profile.objects.get(user__username='demo')
+    for field in ['birth_year', 'height', 'gender']:
+        setattr(profile, field, getattr(demo_profile, field))
+    profile.save()
     user_dps = demo_profile.user_datapoints.all()
     prof_pms = demo_profile.profile_parameters.all()
 

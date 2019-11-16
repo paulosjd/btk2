@@ -23,6 +23,8 @@ class ProfileShareMenu(APIView):
         return super().dispatch(request, *args, **kwargs)
 
     def profile_data_response(self, profile):
+        if profile.user.username.startswith('demo_'):
+            profile = get_object_or_404(Profile, user__username='demo')
         serializer = self.serializer_class(profile)
         return Response(
             {'is_verified': profile.email_confirmed,

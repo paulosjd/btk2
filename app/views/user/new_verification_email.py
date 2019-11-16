@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.tasks.user_registration import send_verification_email
+from app.tasks.user_admin import send_verification_email
 
 
 class NewVerificationEmail(APIView):

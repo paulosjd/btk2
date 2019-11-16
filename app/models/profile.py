@@ -95,7 +95,3 @@ class Profile(models.Model):
                 'param_name': obj.parameter.name}}
             for obj in self.user_bookmarks.all()
         ]
-
-    @classmethod
-    def create_demo_user(cls):
-        cls.objects.create(is_temporary=True)
