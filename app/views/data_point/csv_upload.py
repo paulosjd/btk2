@@ -13,6 +13,10 @@ from app.utils import CsvToModelData
 class CsvUploadView(APIView):
     serializer_class = DataPointSerializer
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.error_msg = 'Something has gone wrong'
+
     def post(self, request):
         """
         :param request: dict, if key 'meta' provided this must be a dict
@@ -30,7 +34,6 @@ class CsvUploadView(APIView):
                              'profile': request.user.profile.id}}
                          for con_dct in confirm_data.data]
             serializer = self.serializer_class(data=data_list, many=True)
-            error_msg = 'Something has gone wrong'
 
             if serializer.is_valid():
                 parameter = get_object_or_404(Parameter.objects, id=param_id)
@@ -41,7 +44,7 @@ class CsvUploadView(APIView):
                         unit_option = UnitOption.objects.get(
                             parameter=parameter, name=unit_choice)
                     except UnitOption.DoesNotExist:
-                        return Response({'error': error_msg},
+                        return Response({'error': self.error_msg},
                                         status=status.HTTP_400_BAD_REQUEST)
 
                 for val_data in serializer.data:
@@ -52,7 +55,7 @@ class CsvUploadView(APIView):
                 bulk_create_result = DataPoint.bulk_create_from_csv_upload(
                     serializer.data)
                 if bulk_create_result.message:
-                    error_msg = bulk_create_result.message
+                    self.error_msg = bulk_create_result.message
 
                 if bulk_create_result.success:
                     if unit_option:
@@ -63,7 +66,7 @@ class CsvUploadView(APIView):
                     return Response({'status': 'Success'},
                                     status=status.HTTP_200_OK)
 
-            return Response({'error': error_msg},
+            return Response({'error': self.error_msg},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Check for uploaded file etc
