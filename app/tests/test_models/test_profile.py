@@ -6,6 +6,9 @@ from unittest.mock import patch
 from app.models import Bookmark, ProfileShare
 from app.tests.base import BaseTestCase
 
+ppuo_path = 'app.models.profile_parameter.ProfileParamUnitOption'
+view_path = 'app.models.profile_share.ProfileShare'
+
 
 class ProfileTestCase(BaseTestCase):
 
@@ -44,10 +47,8 @@ class ProfileTestCase(BaseTestCase):
             self.profile_1.get_linked_profile_parameters()
         )
 
-    @patch('app.models.profile_parameter.ProfileParamUnitOption.'
-           'param_unit_opt_dct', return_value={})
-    @patch('app.models.profile_parameter.ProfileParamUnitOption'
-           '.get_unit_option')
+    @patch(f'{ppuo_path}.param_unit_opt_dct', return_value={})
+    @patch(f'{ppuo_path}.get_unit_option')
     @patch('app.models.profile.Profile.summary_data')
     def test_get_summary_data(self, sum_data_patch, guo_pch, puod_pch):
         param_fields = [
@@ -68,7 +69,7 @@ class ProfileTestCase(BaseTestCase):
         } for i, obj in enumerate(sum_data_obj_list)]
         self.assertEqual(expected_return_val, self.profile_1.get_summary_data())
 
-    @patch('app.models.profile_share.ProfileShare.get_id_and_profile',)
+    @patch(f'{view_path}.get_id_and_profile',)
     def test_get_share_requests_with_default_params(self, get_id_and_profile_p):
         get_id_and_profile_p.side_effect = lambda s: s
         child_fk, name_suffix = 'requester', 'received'
@@ -78,7 +79,7 @@ class ProfileTestCase(BaseTestCase):
             self.profile_1.get_share_requests()
         )
 
-    @patch('app.models.profile_share.ProfileShare.get_id_and_profile',)
+    @patch(f'{view_path}.get_id_and_profile', )
     def test_get_share_requests_non_default_params(self, get_id_and_profile_p):
         get_id_and_profile_p.side_effect = lambda s: s
         child_fk, name_suffix = 'receiver', 'requested'

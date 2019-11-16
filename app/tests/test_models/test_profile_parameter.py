@@ -4,9 +4,8 @@ from unittest.mock import patch
 from app.models import ProfileParamUnitOption
 from app.tests.base import BaseTestCase
 
-
-mock_ideals_data = {k: f'{k}_val' for k in ['ideal2_prepend', 'ideal', 'ideal2',
-                                            'ideal_prepend']}
+mock_ideals_data = {k: f'{k}_val' for k in
+                    ['ideal2_prepend', 'ideal', 'ideal2', 'ideal_prepend']}
 
 
 class MockCalcParamIdeal:

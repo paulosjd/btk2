@@ -1,4 +1,3 @@
-from collections import namedtuple
 from datetime import datetime
 from unittest.mock import patch
 
@@ -6,8 +5,10 @@ from rest_framework.test import force_authenticate
 
 from app.models import Parameter
 from app.tests.base import BaseTestCase
-from app.tests.mock_objects import LazyAttrObj, MockObj, MockRequest
+from app.tests.mock_objects import MockObj, MockRequest
 from app.views.data_point.add_data_points import AddDataPoints
+
+file_path = 'app.views.data_point.add_data_points'
 
 
 class AddDataPointsTestCase(BaseTestCase):
@@ -19,8 +20,7 @@ class AddDataPointsTestCase(BaseTestCase):
         self.request = MockRequest(method='POST', user=self.profile_1.user)
         force_authenticate(self.request, user=self.profile_1.user)
 
-    @patch('app.views.data_point.add_data_points.AddDataPoints.'
-           'process_post_data')
+    @patch(f'{file_path}.AddDataPoints.process_post_data')
     def test_post_1(self, ppd_pch):
         self.request.data = {
             'value': {'parameter': 'should_not_get_result'}
@@ -28,8 +28,7 @@ class AddDataPointsTestCase(BaseTestCase):
         self.assertEqual('some_json', self.view.post(self.request))
         self.assertEqual(0, ppd_pch.call_count)
 
-    @patch('app.views.data_point.add_data_points.AddDataPoints.'
-           'process_post_data')
+    @patch(f'{file_path}.AddDataPoints.process_post_data')
     def test_post_2(self, ppd_pch):
         self.request.data = {
             'value': {'parameter': Parameter.objects.first().name, 'foo': 'bar'}
@@ -41,8 +40,7 @@ class AddDataPointsTestCase(BaseTestCase):
             ppd_pch.call_args[0]
         )
 
-    @patch('app.views.data_point.add_data_points.DataPoint.'
-           'update_on_date_match_or_create')
+    @patch(f'{file_path}.DataPoint.update_on_date_match_or_create')
     def test_process_post_data_with_catch_key_error(self, uodmoc_pch):
         mock_param = MockObj(upload_fields='value')
         bad_input = {'0_date': '2018-10-10', '0_xyz': '',
@@ -50,8 +48,7 @@ class AddDataPointsTestCase(BaseTestCase):
         self.view.process_post_data(bad_input, mock_param)
         self.assertEqual(0, uodmoc_pch.call_count)
 
-    @patch('app.views.data_point.add_data_points.DataPoint.'
-           'update_on_date_match_or_create')
+    @patch(f'{file_path}.DataPoint.update_on_date_match_or_create')
     def test_process_post_data_handles_value_error(self, uodmoc_pch):
         mock_param = MockObj(upload_fields='value')
         bad_input = {'0_date': '2018-10-10', '0_value': '',
@@ -67,8 +64,7 @@ class AddDataPointsTestCase(BaseTestCase):
             uodmoc_pch.call_args[1]
         )
 
-    @patch('app.views.data_point.add_data_points.DataPoint.'
-           'update_on_date_match_or_create')
+    @patch(f'{file_path}.DataPoint.update_on_date_match_or_create')
     def test_process_post_data_with_valid_input_data(self, uodmoc_pch):
         mock_param = MockObj(upload_fields='value')
         bad_input = {'0_date': '2018-10-10', '0_value': '58.6',

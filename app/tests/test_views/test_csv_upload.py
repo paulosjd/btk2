@@ -8,6 +8,8 @@ from app.tests.base import BaseTestCase
 from app.tests.mock_objects import MockObj, MockRequest
 from app.views.data_point.csv_upload import CsvUploadView
 
+file_path = 'app.views.data_point.csv_upload'
+
 
 class MockCsvProcessor:
     def __init__(self, fields, data, **kwargs):
@@ -48,7 +50,7 @@ class CsvUploadViewTestCase(BaseTestCase):
                              'param_choice': 'dfg3r43$23sf!23'}
         self.assertEqual(400, self.view.post(self.request).status_code)
 
-    @patch('app.views.data_point.csv_upload.CsvToModelData')
+    @patch(f'{file_path}.CsvToModelData')
     def test_post_with_file_in_request_data_not_is_valid(self, csv2md_pch):
         req_params = {'param_choice': self.csv_test_param.name, 'file': 'file5',
                       'unit_choice': 'test_uc', 'date_format': 'YYYY/MM/DD'}
@@ -67,7 +69,7 @@ class CsvUploadViewTestCase(BaseTestCase):
         self.assertEqual((req_params['file'], expected_meta_dict),
                          csv2md_pch.call_args[0])
 
-    @patch('app.views.data_point.csv_upload.CsvToModelData', autospec=True)
+    @patch(f'{file_path}.CsvToModelData', autospec=True)
     def test_post_with_file_in_request_data_is_valid(self, csv2md_pch):
         req_params = {'param_choice': self.csv_test_param.name, 'file': 'file5',
                       'unit_choice': 'test_uc', 'date_format': 'YYYY/MM/DD'}
@@ -119,8 +121,7 @@ class CsvUploadViewTestCase(BaseTestCase):
         self.assertEqual(400, resp.status_code)
         self.assertEqual({'error': self.view.error_msg}, resp.data)
 
-    @patch('app.views.data_point.csv_upload.DataPoint.'
-           'bulk_create_from_csv_upload')
+    @patch(f'{file_path}.DataPoint.bulk_create_from_csv_upload')
     def test_post_valid_bulk_create_fail(self, bcfcu_pch):
         bcfcu_pch.return_value = MockObj(message='test msg', success=False)
         meta = {'param_id': self.csv_test_param.id,
@@ -139,8 +140,7 @@ class CsvUploadViewTestCase(BaseTestCase):
         self.assertEqual({'error': bcfcu_pch.return_value.message}, resp.data)
 
     @patch.object(ProfileParamUnitOption.objects, 'get_or_create')
-    @patch('app.views.data_point.csv_upload.DataPoint.'
-           'bulk_create_from_csv_upload')
+    @patch(f'{file_path}.DataPoint.bulk_create_from_csv_upload')
     def test_post_valid_bulk_create_success(self, bcfcu_pch, goc_pch):
         bcfcu_pch.return_value = MockObj(message='', success=True)
         meta = {'param_id': self.csv_test_param.id,

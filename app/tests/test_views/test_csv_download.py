@@ -10,6 +10,8 @@ from app.tests.base import BaseTestCase
 from app.tests.mock_objects import MockObj, MockRequest
 from app.views.data_point.csv_download import CsvDownloadView
 
+file_path = 'app.views.data_point.csv_download'
+
 
 class CsvDownloadViewTestCase(BaseTestCase):
 
@@ -37,10 +39,9 @@ class CsvDownloadViewTestCase(BaseTestCase):
         self.request.data = {'date_fmt': 'some bad format', 'fields': []}
         self.assertEqual(400, self.view.post(self.request).status_code)
 
-    @patch('app.views.data_point.csv_download.CsvDownloadView.get_rows')
-    @patch('app.views.data_point.csv_download.CsvDownloadView.'
-           'get_headers_labels')
-    @patch('app.views.data_point.csv_download.CsvDownloadView.init')
+    @patch(f'{file_path}.CsvDownloadView.get_rows')
+    @patch(f'{file_path}.CsvDownloadView.get_headers_labels')
+    @patch(f'{file_path}.CsvDownloadView.init')
     def test_post_method_valid_input_data(self, init_pch, ghl_pch, gr_pch):
         header_labels = ['a', 'b']
         rows = [['32', '34'], ['42', '35']]
@@ -92,8 +93,7 @@ class CsvDownloadViewTestCase(BaseTestCase):
         self.assertEqual(expected_set_param_cols, self.view.param_cols)
         self.assertEqual(expected_set_params, self.view.parameters)
 
-    @patch('app.views.data_point.csv_download.ProfileParamUnitOption.'
-           'get_unit_option')
+    @patch(f'{file_path}.ProfileParamUnitOption.get_unit_option')
     def test_get_headers_labels(self, guo_pch):
         symbol = 'mg/L'
         guo_pch.return_value = MockObj(symbol=symbol)

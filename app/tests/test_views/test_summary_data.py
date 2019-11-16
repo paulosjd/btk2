@@ -7,6 +7,8 @@ from app.tests.base import BaseTestCase
 from app.tests.mock_objects import LazyAttrObj, MockObj, MockRequest
 from app.views.profile.summary_data import ProfileSummaryData
 
+file_path = 'app.views.profile.summary_data'
+
 
 class SummaryDataTestCase(BaseTestCase):
 
@@ -40,15 +42,11 @@ class SummaryDataTestCase(BaseTestCase):
                                for _ in range(4)]
         self.assertEqual(400, self.view.get(self.request).status_code)
 
-    @patch('app.views.profile.summary_data.ProfileSummaryData.'
-           'update_with_ideals_data')
-    @patch('app.views.profile.summary_data.ProfileSummaryData.'
-           'update_with_units_options')
-    @patch('app.views.profile.summary_data.ProfileSummaryData.'
-           'update_with_stats_data')
-    @patch('app.views.profile.summary_data.ProfileParamUnitOption.'
-           'param_unit_opt_dct')
-    @patch('app.views.profile.summary_data.ProfileSummaryData.get_serializers')
+    @patch(f'{file_path}.ProfileSummaryData.update_with_ideals_data')
+    @patch(f'{file_path}.ProfileSummaryData.update_with_units_options')
+    @patch(f'{file_path}.ProfileSummaryData.update_with_stats_data')
+    @patch(f'{file_path}.ProfileParamUnitOption.param_unit_opt_dct')
+    @patch(f'{file_path}.ProfileSummaryData.get_serializers')
     def test_get_method_success_response(self, gs_pch, ppuo_pch, p1, p2, p3):
         for s in ['get_share_requests', 'get_linked_profile_parameters']:
             setattr(self.profile_1, s, lambda: '')
@@ -64,10 +62,10 @@ class SummaryDataTestCase(BaseTestCase):
         self.assertEqual(self.view.shared_profile is not None,
                          resp.data['is_shared_view'])
 
-    @patch('app.views.profile.summary_data.BookmarkSerializer')
-    @patch('app.views.profile.summary_data.DataPointSerializer')
-    @patch('app.views.profile.summary_data.ParameterSerializer')
-    @patch('app.views.profile.summary_data.SummaryDataSerializer')
+    @patch(f'{file_path}.BookmarkSerializer')
+    @patch(f'{file_path}.DataPointSerializer')
+    @patch(f'{file_path}.ParameterSerializer')
+    @patch(f'{file_path}.SummaryDataSerializer')
     def test_get_serializers(self, p1, p2, p3, p4):
         mock_param = MockObj(num_values=34, name='test_name')
         nt_fields = ['parameter', 'id', 'date', 'value', 'value2', 'qualifier']
@@ -83,7 +81,7 @@ class SummaryDataTestCase(BaseTestCase):
             self.assertEqual({'data': '', 'many': True},
                              getattr(pch, 'call_args')[1])
 
-    @patch('app.views.profile.summary_data.CalcParamIdeal')
+    @patch(f'{file_path}.CalcParamIdeal')
     def test_update_with_ideals_data(self, cpi_pch):
         cpi_pch.return_value = MockObj(
             get_ideal_data=lambda: {k: f'{k}_val' for k in ['ideal', 'ideal2']},
@@ -114,8 +112,8 @@ class SummaryDataTestCase(BaseTestCase):
         self.view.update_with_units_options(initial)
         self.assertEqual({'unit_info': ['gui_mock']}, initial)
 
-    @patch('app.views.profile.summary_data.get_rolling_mean')
-    @patch('app.views.profile.summary_data.get_monthly_means')
+    @patch(f'{file_path}.get_rolling_mean')
+    @patch(f'{file_path}.get_monthly_means')
     def test_update_with_stats_data(self, gmm_pch, grm_pch):
         initial = {'datapoints': [{'parameter': 'p1', 'val': 1},
                                   {'parameter': 'p2', 'val': 2}]}
