@@ -60,7 +60,7 @@ class CsvDownloadViewTestCase(BaseTestCase):
         self.assertEqual(expected_response.serialize(),
                          self.view.post(self.request).serialize())
         self.assertEqual(([self.param3, self.param4],
-                          Parameter.date_fmt_opts_map.get(date_fmt)),
+                          self.date_fmt_opts_map.get('YYYY/MM/DD')),
                          init_pch.call_args[0])
 
     def test_init_method(self):

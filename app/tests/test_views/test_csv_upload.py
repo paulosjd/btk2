@@ -1,14 +1,23 @@
-import csv
-from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from django.http import HttpResponse
 from rest_framework.test import force_authenticate
 
-from app.models import DataPoint, Parameter
+from app.models import Parameter, UnitOption, ProfileParamUnitOption
+from app.serializers import DataPointSerializer
 from app.tests.base import BaseTestCase
 from app.tests.mock_objects import MockObj, MockRequest
 from app.views.data_point.csv_upload import CsvUploadView
+
+
+class MockCsvProcessor:
+    def __init__(self, fields, data, **kwargs):
+        super().__init__(**kwargs)
+        self.is_valid = True
+        self.fields = fields
+        self.data = data
+
+    def __iter__(self):
+        return iter(self.data)
 
 
 class CsvUploadViewTestCase(BaseTestCase):
@@ -19,16 +28,16 @@ class CsvUploadViewTestCase(BaseTestCase):
         self.request = MockRequest(method='POST', user=self.profile_1.user)
         force_authenticate(self.request, user=self.profile_1.user)
         self.csv_test_param = Parameter.objects.create(
-            name='Csv Upload Test', profile=self.profile_2, is_builtin=True,
+            name='Csv Upload Test', profile=self.profile_1, is_builtin=True,
             **self.param_extras
         )
-
-        # self.dp_data = dict(profile=self.profile_1, parameter=self.param1,
-        #                     date=datetime.today(), value=20)
-        # self.dp_data2 = dict(profile=self.profile_1, parameter=self.param1,
-        #                      date=datetime(2018, 10, 12).date(), value=5)
-        # self.data_point = DataPoint.objects.create(**self.dp_data)
-        # self.data_point2 = DataPoint.objects.create(**self.dp_data2)
+        self.prof2_csv_param_unit_opt = self.profile_1.profile_parameters.get(
+            parameter=self.csv_test_param
+        )
+        self.unit_opt = UnitOption.objects.create(
+            name='Test metric A', symbol='$', is_builtin=True,
+            parameter=self.csv_test_param
+        )
 
     def test_post_method_missing_data(self):
         self.request.data = {'date_fmt': 'some bad format', 'file': None}
@@ -39,85 +48,112 @@ class CsvUploadViewTestCase(BaseTestCase):
                              'param_choice': 'dfg3r43$23sf!23'}
         self.assertEqual(400, self.view.post(self.request).status_code)
 
-    def test_post_with_file_in_request_data(self):
-        pass
+    @patch('app.views.data_point.csv_upload.CsvToModelData')
+    def test_post_with_file_in_request_data_not_is_valid(self, csv2md_pch):
+        req_params = {'param_choice': self.csv_test_param.name, 'file': 'file5',
+                      'unit_choice': 'test_uc', 'date_format': 'YYYY/MM/DD'}
+        self.request.data = req_params
+        expected_meta_dict = {
+            'field_order': self.csv_test_param.upload_fields.split(', '),
+            'param_id': self.csv_test_param.id,
+            'date_fmt': self.date_fmt_opts_map[req_params['date_format']],
+            'unit_choice': req_params['unit_choice']
+        }
+        csv2md_pch.return_value = MockObj(is_valid=False, error='abc')
 
+        resp = self.view.post(self.request)
+        self.assertEqual(400, resp.status_code)
+        self.assertEqual({'error': 'abc'}, resp.data)
+        self.assertEqual((req_params['file'], expected_meta_dict),
+                         csv2md_pch.call_args[0])
 
-    # @patch('app.views.data_point.csv_download.CsvDownloadView.get_rows')
-    # @patch('app.views.data_point.csv_download.CsvDownloadView.'
-    #        'get_headers_labels')
-    # @patch('app.views.data_point.csv_download.CsvDownloadView.init')
-    # def test_post_method_valid_input_data(self, init_pch, ghl_pch, gr_pch):
-    #     header_labels = ['a', 'b']
-    #     rows = [['32', '34'], ['42', '35']]
-    #     ghl_pch.return_value = header_labels
-    #     gr_pch.return_value = rows
-    #     date_fmt = 'YYYY/MM/DD'
-    #     fields = [a.name for a in [self.param3, self.param4]]
-    #     self.request.data = {'date_fmt': date_fmt, 'fields': fields}
-    #     self.request.user.profile = self.profile_2
-    #     expected_response = HttpResponse(content_type='text/csv')
-    #     expected_response['Content-Disposition'] = \
-    #         f'attachment; filename="{self.profile_2.user.username}_data.csv"'
-    #     writer = csv.writer(expected_response)
-    #     writer.writerow(header_labels)
-    #     for row in rows:
-    #         writer.writerow(row)
-    #     self.assertEqual(expected_response.serialize(),
-    #                      self.view.post(self.request).serialize())
-    #     self.assertEqual(([self.param3, self.param4],
-    #                       Parameter.date_fmt_opts_map.get(date_fmt)),
-    #                      init_pch.call_args[0])
-    #
-    # def test_init_method(self):
-    #     parameters = [a.parameter for a in [self.data_point, self.data_point2]]
-    #     dt_fmt = '%Y/%m/%d '
-    #     self.view.param_cols = {}
-    #     self.view.parameters = []
-    #     expected_set_param_cols = {}
-    #     expected_set_params = []
-    #     self.request.user.profile = self.data_point.profile
-    #     for param in parameters:
-    #         param_dpts = DataPoint.objects.filter(
-    #             profile=self.request.user.profile, parameter=param
-    #         ).all()
-    #         param_sub_rows = [
-    #             [getattr(a, field) for field in param.upload_fields.split(', ')]
-    #             for a in param_dpts
-    #         ]
-    #         for ind, ps in enumerate(param_sub_rows):
-    #             param_sub_rows[ind][0] = param_sub_rows[ind][0].strftime(dt_fmt)
-    #         expected_set_param_cols[param.name] = param_sub_rows
-    #         expected_set_params.append(param)
-    #     expected_set_params = list(reversed(
-    #         sorted(expected_set_params,
-    #                key=lambda x: len(expected_set_param_cols))
-    #     ))
-    #     self.view.request = self.request
-    #     self.view.init(parameters, dt_fmt)
-    #     self.assertEqual(expected_set_param_cols, self.view.param_cols)
-    #     self.assertEqual(expected_set_params, self.view.parameters)
-    #
-    # @patch('app.views.data_point.csv_download.ProfileParamUnitOption.'
-    #        'get_unit_option')
-    # def test_get_headers_labels(self, guo_pch):
-    #     symbol = 'mg/L'
-    #     guo_pch.return_value = MockObj(symbol=symbol)
-    #     self.view.parameters = [MockObj(upload_field_labels='Date, Col B'),
-    #                             MockObj(upload_field_labels='Date, Col D')]
-    #     self.view.request = self.request
-    #     self.assertEqual(
-    #         ['Date', f'Col B ({symbol})', '', 'Date', f'Col D ({symbol})'],
-    #         self.view.get_headers_labels()
-    #     )
-    #
-    # def test_get_rows(self):
-    #     param_cols = {'Param name': [
-    #         ['2015/10/11', 75.0], ['2015/10/19', 56.0], ['2018/10/12', 65.0]]}
-    #     self.view.param_cols = param_cols
-    #     self.view.parameters = [MockObj(name='Param name', num_values=1)]
-    #     self.view.request = self.request
-    #     expected_output = []
-    #     for row_num in range(len(param_cols['Param name'])):
-    #         expected_output.append(param_cols['Param name'][row_num])
-    #     self.assertEqual(expected_output, self.view.get_rows())
+    @patch('app.views.data_point.csv_upload.CsvToModelData', autospec=True)
+    def test_post_with_file_in_request_data_is_valid(self, csv2md_pch):
+        req_params = {'param_choice': self.csv_test_param.name, 'file': 'file5',
+                      'unit_choice': 'test_uc', 'date_format': 'YYYY/MM/DD'}
+        self.request.data = req_params
+        dp_fields = self.csv_test_param.upload_fields.split(', ')
+        csv2md = MockCsvProcessor(dp_fields,
+                                  [MockObj(**{dp_fields[0]: a, dp_fields[1]: b})
+                                   for a, b in [('a', 2), ('b', 3)]])
+        csv2md_pch.return_value = csv2md
+        expected_resp_data = {
+            'data': [{k: getattr(obj, k) for k in dp_fields}
+                     for obj in csv2md],
+            'meta': {
+                'field_order': dp_fields,
+                'param_id': self.csv_test_param.id,
+                'date_fmt': self.date_fmt_opts_map[req_params['date_format']],
+                'unit_choice': req_params['unit_choice']
+            }
+        }
+
+        resp = self.view.post(self.request)
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(expected_resp_data, resp.data)
+
+    def test_post_serializer_is_valid_unit_opt_not_found(self):
+        data = [{'a': i, 'b': i + 1} for i in [0, 2]]
+        meta = {'param_id': self.csv_test_param.id, 'unit_choice': '4er%E$sfe'}
+        self.request.data = {'data': {
+            'data': data, 'meta': meta, 'confirm': True
+        }}
+        expected_data_list = [{**dct, **{'parameter': self.csv_test_param.id,
+                                         'profile': self.profile_1.id}}
+                              for dct in data]
+
+        self.view.serializer_class = Mock()
+        resp = self.view.post(self.request)
+        self.assertEqual({'data': expected_data_list, 'many': True},
+                         self.view.serializer_class.call_args[1])
+        self.assertEqual({'error': self.view.error_msg}, resp.data)
+
+    @patch.object(DataPointSerializer, 'is_valid', return_value=False)
+    def test_post_with_serializer_is_not_valid(self, dp_ser_pch):
+        self.request.data = {'data': {
+            'data': [{'a': 2}], 'confirm': True,
+            'meta': {'param_id': self.csv_test_param.id, 'unit_choice': 'a'},
+        }}
+        dp_ser_pch.return_value = self.view.serializer_class
+        resp = self.view.post(self.request)
+        self.assertEqual(400, resp.status_code)
+        self.assertEqual({'error': self.view.error_msg}, resp.data)
+
+    @patch('app.views.data_point.csv_upload.DataPoint.'
+           'bulk_create_from_csv_upload')
+    def test_post_valid_bulk_create_fail(self, bcfcu_pch):
+        bcfcu_pch.return_value = MockObj(message='test msg', success=False)
+        meta = {'param_id': self.csv_test_param.id,
+                'unit_choice': self.unit_opt.name}
+        self.request.data = {'data': {'data': [{'a': 2}],
+                                      'meta': meta,
+                                      'confirm': True}}
+        self.view.serializer_class = Mock(return_value=MockObj(
+            is_valid=lambda: True, data=[{}]
+        ))
+
+        resp = self.view.post(self.request)
+        self.assertEqual([{'parameter': self.csv_test_param,
+                           'profile': self.request.user.profile}],
+                         bcfcu_pch.call_args[0][0]),
+        self.assertEqual({'error': bcfcu_pch.return_value.message}, resp.data)
+
+    @patch.object(ProfileParamUnitOption.objects, 'get_or_create')
+    @patch('app.views.data_point.csv_upload.DataPoint.'
+           'bulk_create_from_csv_upload')
+    def test_post_valid_bulk_create_success(self, bcfcu_pch, goc_pch):
+        bcfcu_pch.return_value = MockObj(message='', success=True)
+        meta = {'param_id': self.csv_test_param.id,
+                'unit_choice': self.unit_opt.name}
+        self.request.data = {'data': {'data': [{'a': 2}],
+                                      'meta': meta,
+                                      'confirm': True}}
+        self.view.serializer_class = Mock(return_value=MockObj(
+            is_valid=lambda: True, data=[{}]
+        ))
+
+        resp = self.view.post(self.request)
+        self.assertEqual([{'parameter': self.csv_test_param,
+                           'profile': self.request.user.profile}],
+                         bcfcu_pch.call_args[0][0]),
+        self.assertEqual(200, resp.status_code)
