@@ -18,7 +18,7 @@ class ProfileTestCase(BaseTestCase):
         cls.profile_1.email_confirmed = True
         cls.profile_2.email_confirmed = True
         cls.share1 = ProfileShare.objects.create(
-            requester=cls.profile_1, receiver=cls.profile_2, enabled=False
+            requester=cls.profile_1, receiver=cls.profile_2, enabled=False,
         )
         cls.share2 = ProfileShare.objects.create(
             requester=cls.profile_1, receiver=cls.profile_2, enabled=True
@@ -69,23 +69,23 @@ class ProfileTestCase(BaseTestCase):
         } for i, obj in enumerate(sum_data_obj_list)]
         self.assertEqual(expected_return_val, self.profile_1.get_summary_data())
 
-    @patch(f'{view_path}.get_id_and_profile',)
+    @patch(f'{view_path}.get_id_and_profile', return_value={'a': '2'})
     def test_get_share_requests_with_default_params(self, get_id_and_profile_p):
-        get_id_and_profile_p.side_effect = lambda s: s
         child_fk, name_suffix = 'requester', 'received'
         self.assertEqual(
-            [child_fk for _ in getattr(
-                self.profile_1, f'shares_{name_suffix}').filter(enabled=False)],
+            [{**get_id_and_profile_p.return_value, 'message': a.message}
+             for a in getattr(self.profile_1,
+                              f'shares_{name_suffix}').filter(enabled=False)],
             self.profile_1.get_share_requests()
         )
 
-    @patch(f'{view_path}.get_id_and_profile', )
+    @patch(f'{view_path}.get_id_and_profile', return_value={'b': '5'})
     def test_get_share_requests_non_default_params(self, get_id_and_profile_p):
-        get_id_and_profile_p.side_effect = lambda s: s
         child_fk, name_suffix = 'receiver', 'requested'
         self.assertEqual(
-            [child_fk for _ in getattr(
-                self.profile_1, f'shares_{name_suffix}').filter(enabled=False)],
+            [{**get_id_and_profile_p.return_value, 'message': a.message}
+             for a in getattr(self.profile_1,
+                              f'shares_{name_suffix}').filter(enabled=False)],
             self.profile_1.get_share_requests('made')
         )
 
