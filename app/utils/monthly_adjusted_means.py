@@ -37,23 +37,21 @@ def get_monthly_means(data_points: List[dict], extra=None) -> List[dict]:
         extra = {}
     if len(data_points) < 2:
         return []
-    has_val2 = len([dp['value2'] for dp in data_points
-                    if dp.get('value2')]) == len(data_points)
+    has_val2 = len(
+        [dp['value2'] for dp in data_points if dp.get('value2')]
+    ) == len(data_points)
 
     day_diffs = get_day_diffs(data_points)
     latest_date = Timestamp(data_points[0]['date'])
-    latest_date_str = latest_date.strftime("%Y-%b")
     max_days = Timedelta(days=min(sum(day_diffs), 375))
-    earliest_date = latest_date - max_days
-    months_dt = date_range(
-        earliest_date, latest_date, freq='M').tolist()[::-1]
-    days_range = date_range(
-        earliest_date, latest_date, freq='D').tolist()[::-1]
-
+    months_dt, days_range = [
+        date_range(latest_date - max_days, latest_date, freq=s).tolist()[::-1]
+        for s in ['M', 'D']
+    ]
     values = get_interpolated_values(
         day_diffs, data_points, 'value'
     )
-    month_keys = [latest_date_str] + [a.strftime("%Y-%b") for a in months_dt]
+    month_keys = [a.strftime("%Y-%b") for a in [latest_date] + months_dt]
     months = get_monthly_values(values, days_range, month_keys)
     months2 = []
     if has_val2:

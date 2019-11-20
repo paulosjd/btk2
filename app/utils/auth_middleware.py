@@ -3,7 +3,7 @@ from django.utils.functional import SimpleLazyObject
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 
-class AuthenticationMiddlewareJWT(object):
+class AuthenticationMiddlewareJWT:
     def __init__(self, get_response):
         self.get_response = get_response
 

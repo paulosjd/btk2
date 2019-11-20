@@ -51,8 +51,10 @@ class CalcParamIdeal:
         age = self.profile.age
         if age:
             return {
-                'ideal': 55.6,
-                'ideal2': 34.6,
+                'ideal': 120 if age < 65 else 130,
+                'ideal2': 80,
+                'ideal_prepend': '<',
+                'ideal2_prepend': '<'
             }
 
     def blood_cholesterol(self):
