@@ -74,7 +74,8 @@ class Profile(models.Model):
         child_fk, name_suffix = 'requester', 'received'
         if request_type == 'made':
             child_fk, name_suffix = 'receiver', 'requested'
-        return [a.get_id_and_profile(child_fk) for a in
+        return [{**a.get_id_and_profile(child_fk),
+                 'message': a.message} for a in
                 getattr(self, f'shares_{name_suffix}').filter(enabled=active)]
 
     def get_active_shares(self) -> List[dict]:
@@ -82,7 +83,7 @@ class Profile(models.Model):
         for s in ['made', '']:
             for dct in self.get_share_requests(s, active=True):
                 active_shares.append(
-                    {k if k in ['id', 'profile_id'] else 'name': v
+                    {k if k in ['id', 'profile_id', 'message'] else 'name': v
                      for k, v in dct.items()}
                 )
         return list(sorted(active_shares, key=itemgetter('name')))
