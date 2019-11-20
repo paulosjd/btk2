@@ -103,5 +103,10 @@ class MonthlyAdjustedMeansTestCase(TestCase):
             )
         )
 
-
-
+    def test_get_day_diffs(self):
+        expected_day_diffs = [
+            abs((Timestamp(dp['date']) - Timestamp(
+                self.dps_input[i - 1]['date'])).days)
+            for i, dp in enumerate(self.dps_input) if i > 0
+        ]
+        self.assertEqual(expected_day_diffs, get_day_diffs(self.dps_input))
