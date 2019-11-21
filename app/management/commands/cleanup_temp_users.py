@@ -8,8 +8,12 @@ from app.models import Profile, User
 
 class Command(BaseCommand):
     """
-    Deletes User instances which have 'is_temporary' flag and true, and which
-    were created gt 12 hours ago, along with associated Profiles.
+    Deletes User records (and children) which have 'is_temporary' flag True.
+    Applies to those created gt 12 hrs beforehand, or a number specified by an
+    optional argument
+
+    Example usage:
+        $ python manage.py cleanup_temp_users 6
     """
     def add_arguments(self, parser):
         parser.add_argument('hours', type=int, nargs='?', default=12)
