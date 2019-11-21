@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -59,12 +60,18 @@ class CsvUploadView(APIView):
 
                 if bulk_create_result.success:
                     if unit_option:
-                        ProfileParamUnitOption.objects.get_or_create(
-                            parameter=parameter, unit_option=unit_option,
-                            profile=request.user.profile
-                        )
+                        try:
+                            ProfileParamUnitOption.objects.get_or_create(
+                                parameter=parameter, unit_option=unit_option,
+                                profile=request.user.profile
+                            )
+                        except IntegrityError:
+                            return Response({'error': self.error_msg},
+                                            status=status.HTTP_400_BAD_REQUEST)
+
                     return Response({'status': 'Success'},
                                     status=status.HTTP_200_OK)
+
             return Response({'error': self.error_msg},
                             status=status.HTTP_400_BAD_REQUEST)
 
