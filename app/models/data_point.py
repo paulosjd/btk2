@@ -4,7 +4,6 @@ import logging
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models
 
-from .managers.datapoint_manager import DatapointManager
 from .profile_parameter import ProfileParamUnitOption
 
 log = logging.getLogger(__name__)
@@ -41,7 +40,6 @@ class DataPoint(models.Model):
         on_delete=models.CASCADE,
         related_name='user_datapoints',
     )
-    objects = DatapointManager()
 
     class Meta:
         unique_together = ('date', 'parameter', 'profile')
