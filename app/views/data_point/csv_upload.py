@@ -65,7 +65,6 @@ class CsvUploadView(APIView):
                         )
                     return Response({'status': 'Success'},
                                     status=status.HTTP_200_OK)
-
             return Response({'error': self.error_msg},
                             status=status.HTTP_400_BAD_REQUEST)
 
