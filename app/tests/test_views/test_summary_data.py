@@ -33,9 +33,9 @@ class SummaryDataTestCase(BaseTestCase):
 
     @patch('app.views.profile.summary_data.ProfileSummaryData.get_serializers')
     def test_get_method_with_view_has_shared_profile_bad_request(self, gs_pch):
-        SharedProfile = namedtuple('test_shared_prof', 'get_active_shares')
+        SharedProfile = namedtuple('gas', 'get_active_shares')
         self.view.shared_profile = SharedProfile(
-            lambda: [{'profile_id': self.profile_1.id}]
+            lambda: [{'profile_id': self.profile_1.id, 'name': 'sam'}]
         )
         MockSerializer = namedtuple('mock_ser', ['is_valid', 'errors'])
         gs_pch.return_value = [MockSerializer(lambda: False, 'error_msg')

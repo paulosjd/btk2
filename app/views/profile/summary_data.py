@@ -36,8 +36,11 @@ class ProfileSummaryData(APIView):
         profile = request.user.profile
 
         if self.shared_profile:
-            if profile.id not in [a['profile_id'] for a in
-                                  self.shared_profile.get_active_shares()]:
+            allowed_ids, allowed_names = [
+                [a[key] for a in self.shared_profile.get_active_shares()]
+                for key in ['profile_id', 'name']
+            ]
+            if profile.id not in allowed_ids and 'demo' not in allowed_names:
                 return Response({'status': 'Bad request'},
                                 status=status.HTTP_401_UNAUTHORIZED)
             profile = self.shared_profile
