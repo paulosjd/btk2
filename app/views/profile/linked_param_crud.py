@@ -21,6 +21,7 @@ class LinkedParamCrud(APIView):
 
     def post(self, request):
         profile = request.user.profile
+
         if self.action == 'add':
             try:
                 param_id, linked_param_id = [
@@ -30,26 +31,34 @@ class LinkedParamCrud(APIView):
             except (AttributeError, KeyError):
                 return Response({'error': 'invalid post data'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
             profile_param = get_object_or_404(
                 ProfileParamUnitOption, parameter__id=param_id, profile=profile
             )
-            linked_param = Parameter.objects.get(id=linked_param_id)
+            linked_param = Parameter.objects.unfiltered().get(
+                id=linked_param_id
+            )
             profile_param.linked_parameter = linked_param
             profile_param.save()
 
         elif self.action == 'edit':
-            profile_params = [(get_object_or_404(
-                ProfileParamUnitOption, parameter__name=param_name,
-                profile=profile), linked_param_id)
-                for param_name, linked_param_id in request.data.items()]
+            profile_params = [
+                (get_object_or_404(ProfileParamUnitOption, parameter__name=name,
+                                   profile=profile),
+                 linked_param_id)
+                for name, linked_param_id in request.data.items()
+            ]
+
             for instance, param_id in profile_params:
                 try:
-                    instance.linked_parameter = Parameter.objects.get(
+                    linked_param = Parameter.objects.unfiltered().get(
                         id=param_id) if param_id else None
                 except Parameter.DoesNotExist:
                     log.error(f'Lookup failed for param id: {param_id}')
                     return Response({'error': 'invalid linked param id'},
                                     status=status.HTTP_400_BAD_REQUEST)
+                instance.linked_parameter = linked_param
+
             for instance, id_ in profile_params:
                 instance.save()
 
