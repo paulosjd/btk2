@@ -4,8 +4,17 @@
 <style type='text/css'>
     @page {
         size: A4;
-        margin: 2.0cm 2.0cm 2.0cm 2.0cm;
-        padding: 2.0cm;
+        margin: 1.8cm 1.0cm 1.0cm 0.7cm;
+        padding: 1.0cm;
+
+        @frame header {
+          -pdf-frame-content: header-content;
+          font-size:14px;
+          margin-left: 0.7cm;
+          margin-top: 0.4cm;
+          margin-bottom: 1.0cm;
+          padding-bottom: 1.0cm;
+        }
 
     }
 
@@ -13,9 +22,34 @@
 </style>
 </head>
 <body>
+
+    <div id='header-content'>
+        <h1 style="line-height:14px;">Health metrics summary report
+            <span style="font-weight:normal"> - {{ date }}</span></h1>
+    </div>
+            <div style="margin-top:10px">
+
     {% for item in items_list %}
-        <div>
-            {{ item.name }}<br />
+
+            <h4 style="font-weight:bold;font-size:14px;margin-bottom:10px;padding-bottom:0px">{{ item.name }}</h4>
+            <table class="table">
+            <thead>
+                <tr style="">
+                    {% if item.has_val2 %}
+                        <th></th>
+                        <th></th>
+                        <th style="color:red"> Target protein structures</th>
+                    {% else %}
+                        <th></th>
+                        <th></th>
+                        <th style="color:green"> Target protein structures</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody id="tbodyid">
+                <tr><td>as</td><td>as</td><td>as</td></tr>
+            </tbody>
+            </table>
             Data line 2<br />
             Data line 3<br />
             Data line 4<br />
@@ -25,7 +59,17 @@
             Data line 8<br />
             Data line 9<br />
             Data line 10<br />
-        </div>
+            Data line 3<br />
+            Data line 4<br />
+            Data line 5<br />
+            Data line 6<br />
+            Data line 7<br />
+            Data line 8<br />
+            Data line 9<br />
+            Data line 10<br />
+        <br />
     {% endfor %}
+                        </div>
+
 </body>
 </html>
