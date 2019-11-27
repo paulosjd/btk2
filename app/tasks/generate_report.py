@@ -1,13 +1,14 @@
 import base64
+import datetime
 import io
 from operator import itemgetter
+from typing import List, NamedTuple, Optional, Sequence
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
-import seaborn as sns
 from celery.utils.log import get_task_logger
 from django.template.loader import get_template
-from matplotlib import style
 from xhtml2pdf import pisa
 
 from app.models import Profile, ProfileParamUnitOption
@@ -19,10 +20,8 @@ log = get_task_logger(__name__)
 
 # @celery_app.task
 def profile_report_pdf(profile_id, date='20th Feb 2018'):
-    try:
-        profile = Profile.objects.get(id=profile_id)
-    except Profile.DoesNotExist as e:
-        log.error(e)
+    profile = Profile.objects.filter(id=profile_id).first()
+    if not profile:
         return
     report_data = {
         'items_list': get_items_list(profile.all_datapoints(), profile),
@@ -33,17 +32,99 @@ def profile_report_pdf(profile_id, date='20th Feb 2018'):
         file.write(pdf)
 
 
-def render_to_pdf(template_src, context_dct):
+def render_to_pdf(template_src, context_dct) -> Optional[bytes]:
     template = get_template(template_src)
     html = template.render(context_dct)
     result = io.BytesIO()
-    pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+    pdf = pisa.pisaDocument(io.BytesIO(html.encode("utf-8")), result)
     if not pdf.err:
         return result.getvalue()
     log.error(pdf.error)
 
 
-def get_items_list(all_dps, profile):
+def get_items_list(all_dps, profile) -> List[dict]:
+    param_info = get_param_info(all_dps, profile)
+    items_list = [{
+        'name': name,
+        'unit_symbol': param_info.symbols[ind],
+        'val2_label_1': lab1,
+        'val2_label_2': lab2,
+        'has_val2': has_val2,
+        'records': [{k: getattr(obj, k) for k in ['date', 'value', 'value2']}
+                    for obj in all_dps if obj.parameter.name == name]
+    } for ind, (name, has_val2, lab1, lab2, _) in enumerate(param_info.names)]
+
+    prm_fiels = 'unit_symbol', 'has_val2', 'val2_label_1', 'val2_label_2'
+    for ind, item in enumerate(items_list):
+        dps, extra = [{k: dct[k] for k in ['date', 'value', 'value2']}
+                      for dct in item['records']], {'param_name': item['name']}
+
+        # TODO make dry
+        plots = {}
+
+        for data_set, stat_key in [
+            (item['records'], 'recs'),
+            (get_rolling_mean(dps, extra=extra), 'rolling'),
+            (get_monthly_means(dps, extra=extra), 'monthly')
+        ]:
+            if len(data_set) > 3:
+                plot_bio = make_chart_from_data(
+                    data_set, stat=stat_key, **{k: item[k] for k in prm_fiels}
+                )
+                if plot_bio:
+                    plots[stat_key] = base64.b64encode(plot_bio.getvalue()
+                                                       ).decode('ascii')
+
+
+
+        items_list[ind].update({
+            'records_plot': plots.get('recs'),
+            'rolling_means_plot': plots.get('rolling'),
+            'monthly_means_plot': plots.get('monthly'),
+        })
+    return items_list
+
+
+def make_chart_from_data(means_data, stat='', **kwargs) -> Optional[io.BytesIO]:
+    title_map = {'rolling': 'Moving averages',
+                 'monthly': 'Monthly averages (12 months)'}
+    fig, ax = plt.subplots(figsize=(6.5, 2.5))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    plt.title(title_map.get(stat, ''), fontsize=14, fontname='Arial',
+              loc='left', pad=3)
+    plt.ylabel(kwargs.get('unit_symbol', ''), fontname='Arial', fontsize=7)
+    dtf, key = ('%Y-%m-%d', 'date') if stat != 'monthly' else ('%Y-%b', 'month')
+
+    df = pd.DataFrame(
+        {pd.datetime.strptime(d[key], dtf)
+         if stat != 'recs' else pd.to_datetime(datetime.datetime.combine(
+            d[key], datetime.time())):
+            [d.get(f'value{i}', '') for i in ['', 2]]
+         for d in means_data[::-1] if d.get(key)},
+        index=[kwargs.get(f'val2_label_{a}', f'value {a}') for a in [1, 2]]
+    )
+    ss = df.iloc[0, :]
+    try:
+        ss.plot(color="#8a3b78", linewidth=2, linestyle="-")
+    except TypeError:
+        return
+    if kwargs.get('has_val2'):
+        ss2 = df.iloc[1, :]
+        try:
+            ss2.plot(color="#c25476", linewidth=2, linestyle="-")
+        except TypeError:
+            return
+        plt.legend(loc='upper right', fontsize='small')
+    bio = io.BytesIO()
+    fig.savefig(bio, format="png", bbox_inches='tight')
+    plt.close(fig)
+    return bio
+
+
+ParamInfo = NamedTuple('p_info', [('names', Sequence), ('symbols', list)])
+
+
+def get_param_info(all_dps: list, profile: object) -> ParamInfo:
     param_names = sorted(
         set([(obj.parameter.name,
               obj.parameter.num_values == 2,
@@ -65,94 +146,4 @@ def get_items_list(all_dps, profile):
                 log.error(e)
                 symbol = 'n/a'
         unit_symbols.append(symbol)
-    items_list = [{
-        'name': name,
-        'unit_symbol': unit_symbols[ind],
-        'val2_label_1': lab1,
-        'val2_label_2': lab2,
-        'has_val2': has_val2,
-        'records': [{k: getattr(obj, k) for k in ['date', 'value', 'value2']}
-                    for obj in all_dps if obj.parameter.name == name]
-    } for ind, (name, has_val2, lab1, lab2, _) in enumerate(param_names)]
-    for ind, item in enumerate(items_list):
-        dps, extra = [{k: dct[k] for k in ['date', 'value', 'value2']}
-                      for dct in item['records']], {'param_name': item['name']}
-        items_list[ind].update({
-            'rolling_means': get_rolling_mean(dps, extra=extra),
-            'monthly_means': get_monthly_means(dps, extra=extra)
-        })
-
-        prm_fiels = ['unit_symbol', 'has_val2', 'val2_label_1', 'val2_label_2']
-        recs_plot = None
-        if len(item['records']) > 3:
-            plot_bio = make_chart_from_data(
-                item['records'], key='', **{k: item[k] for k in prm_fiels}
-            )
-            recs_plot = base64.b64encode(plot_bio.getvalue()).decode('ascii')
-        rms_plot = None
-        rms = get_rolling_mean(dps, extra=extra)
-        if len(rms) > 3:
-            plot_bio = make_chart_from_data(
-                rms, key='rolling_means', **{k: item[k] for k in prm_fiels}
-            )
-            rms_plot = base64.b64encode(plot_bio.getvalue()).decode('ascii')
-        mms_plot = None
-        mms = get_monthly_means(dps, extra=extra)
-        if len(mms) > 3:
-            plot_bio = make_chart_from_data(
-                mms, key='monthly_means', **{k: item[k] for k in prm_fiels}
-            )
-            mms_plot = base64.b64encode(plot_bio.getvalue()).decode('ascii')
-
-        items_list[ind].update({
-            'records_plot': recs_plot,
-            'rolling_means_plot': rms_plot,
-            'monthly_means_plot': mms_plot
-        })
-    return items_list
-
-
-def make_chart_from_data(means_data, key='', **kwargs):
-    title_map = {'rolling_means': 'Moving averages',
-                 'monthly_means': 'Monthly averages'}
-    fig = plt.figure(figsize=(7, 3))
-    plt.title(title_map.get(key, ''), fontsize=14, fontname='Arial', loc='left',
-              pad=3)
-    plt.ylabel(kwargs.get('unit_symbol', ''), fontname='Arial', fontsize=12)
-    dtf = '%Y-%m-%d'
-    if key != 'rolling_means':
-        dtf = '%Y-%b'
-    df = pd.DataFrame(
-        {pd.datetime.strptime(d['date'], dtf): [d.get(f'value{i}', '')
-                                                for i in ['', 2]]
-         for d in means_data[::-1]},
-        index=[kwargs.get(f'val2_label_{a}', f'value {a}') for a in [1, 2]]
-    )
-    ss = df.iloc[0, :]
-    ss.plot(color="coral", linewidth=2, linestyle="-")
-    # ss.plot(figsize=(10, 6), color="coral", linewidth=2, linestyle="-")
-    if kwargs.get('has_val2'):
-        ss2 = df.iloc[1, :]
-        ss2.plot(color="cornflowerblue", linewidth=2, linestyle="-")
-        plt.legend(loc='upper right', fontsize='small')
-    bio = io.BytesIO()
-    # save figure to bytesio
-    fig.savefig(bio, format="png", bbox_inches='tight')
-    # plt.show()
-    plt.clf()
-    plt.close(fig)
-    return bio
-
-
-# rms = [
-#     {'date': '2019-09-09', 'value': 29.0, 'param_name': 'Blood cholesterol', 'value2': 41.0},
-#     {'date': '2019-07-09', 'value': 28.3, 'param_name': 'Blood cholesterol', 'value2': 41.3},
-#     {'date': '2019-04-09', 'value': 28.8, 'param_name': 'Blood cholesterol', 'value2': 40.0},
-#     {'date': '2019-01-24', 'value': 28.2, 'param_name': 'Blood cholesterol', 'value2': 40.0},
-#     {'date': '2018-10-10', 'value': 28.5, 'param_name': 'Blood cholesterol', 'value2': 40.0},
-#     {'date': '2018-09-19', 'value': 28.5, 'param_name': 'Blood cholesterol', 'value2': 39.8},
-#     {'date': '2018-05-10', 'value': 27.2, 'param_name': 'Blood cholesterol', 'value2': 39.5},
-#     {'date': '2017-10-10', 'value': 27.2, 'param_name': 'Blood cholesterol', 'value2': 38.8},
-#     {'date': '2016-04-11', 'value': 27.2, 'param_name': 'Blood cholesterol', 'value2': 37.0},
-#     {'date': '2015-10-11', 'value': 30.5, 'param_name': 'Blood cholesterol', 'value2': 39.2}
-# ]
+    return ParamInfo(param_names, unit_symbols)
