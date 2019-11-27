@@ -27,49 +27,51 @@
         <h1 style="line-height:14px;">Health metrics summary report
             <span style="font-weight:normal"> - {{ date }}</span></h1>
     </div>
-            <div style="margin-top:10px">
 
+    <div style="margin-top:10px">
     {% for item in items_list %}
-
             <h4 style="font-weight:bold;font-size:14px;margin-bottom:10px;padding-bottom:0px">{{ item.name }}</h4>
+<!--                    <table class="table" style="max-width:864px">-->
             <table class="table">
             <thead>
                 <tr style="">
                     {% if item.has_val2 %}
-                        <th></th>
-                        <th></th>
-                        <th style="color:red"> Target protein structures</th>
+                        <th> </th>
+                        <th>{{ item.val2_label_1 }} ({{ item.unit_symbol }})</th>
+                        <th>{{ item.val2_label_2 }} ({{ item.unit_symbol }})</th>
                     {% else %}
-                        <th></th>
-                        <th></th>
-                        <th style="color:green"> Target protein structures</th>
+                        <th> </th>
+                        <th>{{ item.unit_symbol }}</th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody id="tbodyid">
-                <tr><td>as</td><td>as</td><td>as</td></tr>
+                {% for record in item.records %}
+                <tr>
+                    {% if item.has_val2 %}
+                        <td style="text-align:center">{{ record.date }}</td>
+                        <td style="text-align:center">{{ record.value }}</td>
+                        <td style="text-align:center">{{ record.value2 }}</td>
+                    {% else %}
+                        <td style="text-align:center">{{ record.date }}</td>
+                        <td style="text-align:center">{{ record.value }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
             </tbody>
             </table>
-            Data line 2<br />
-            Data line 3<br />
-            Data line 4<br />
-            Data line 5<br />
-            Data line 6<br />
-            Data line 7<br />
-            Data line 8<br />
-            Data line 9<br />
-            Data line 10<br />
-            Data line 3<br />
-            Data line 4<br />
-            Data line 5<br />
-            Data line 6<br />
-            Data line 7<br />
-            Data line 8<br />
-            Data line 9<br />
-            Data line 10<br />
+            {% if item.records_plot %}
+                <img src="data:image/png;base64,{{item.records_plot}}" />
+            {% endif %}
+            {% if item.rolling_means_plot %}
+                <img src="data:image/png;base64,{{item.rolling_means_plot}}" />
+            {% endif %}
+            {% if item.monthly_means_plot %}
+                <img src="data:image/png;base64,{{item.monthly_means_plot}}" />
+            {% endif %}
         <br />
     {% endfor %}
-                        </div>
+    </div>
 
 </body>
 </html>
