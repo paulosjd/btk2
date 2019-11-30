@@ -18,11 +18,13 @@ from btk2.celery import celery_app
 log = get_task_logger(__name__)
 
 
-# @celery_app.task
-def profile_report_pdf(profile_id, date_str='', param_ids=None, file_name='ab'):
+@celery_app.task
+def profile_report_pdf(
+        profile_id, file_name, date_str='', param_ids=None, removed_stats=None
+):
     profile = Profile.objects.filter(id=profile_id).first()
-    param_ids = list(range(250))
-    if not all([profile, param_ids, file_name]):
+    param_ids = range(250)
+    if not profile and param_ids:
         return
     today = None
     try:

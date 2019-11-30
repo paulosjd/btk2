@@ -26,6 +26,7 @@ urlpatterns = [
     path('profile/bookmarks-edit', EditBookmarksView.as_view()),
     path('profile/custom-metric-add', CustomMetricAdd.as_view()),
     path('profile/generate-report', ProfileReportView.as_view()),
+    path('profile/generate-report/<task_id>', ProfileReportView.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('profile/menu-item-add', MenuItemAdd.as_view()),
     path('profile/linked-param/<action>', LinkedParamCrud.as_view()),
