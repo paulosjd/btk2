@@ -1,38 +1,40 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<style type='text/css'>
-    @page {
-        size: A4;
-        margin: 1.8cm 1.0cm 1.0cm 0.7cm;
-        padding: 1.0cm;
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style type='text/css'>
+        @page {
+            size: A4;
+            margin: 1.8cm 1.0cm 1.0cm 0.7cm;
+            padding: 1.0cm;
 
-        @frame header {
-          -pdf-frame-content: header-content;
-          font-size:14px;
-          margin-left: 0.7cm;
-          margin-top: 0.4cm;
-          margin-bottom: 1.0cm;
-          padding-bottom: 1.0cm;
+            @frame header {
+                -pdf-frame-content: header-content;
+                font-size:14px;
+                margin-left: 0.7cm;
+                margin-top: 0.4cm;
+                margin-bottom: 1.0cm;
+                padding-bottom: 1.0cm;
+            }
+        }
+        th {
+           width: 164px;
         }
 
-    }
-
-
-</style>
+    </style>
 </head>
 <body>
 
     <div id='header-content'>
         <h1 style="line-height:14px;">Health metrics summary report
-            <span style="font-weight:normal"> - {{ date }}</span></h1>
+            <span style="font-weight:normal"> - {{ date|date:"dS M Y" }}</span></h1>
     </div>
 
     <div style="margin-top:10px">
     {% for item in items_list %}
-            <h4 style="font-weight:bold;font-size:14px;margin-bottom:10px;padding-bottom:0px">{{ item.name }}</h4>
-<!--                    <table class="table" style="max-width:864px">-->
-            <table class="table">
+            <h4 style="font-weight:bold;font-size:14px;margin-bottom:10px;padding-bottom:0px">
+                {{ item.name }}
+            </h4>
+            <table>
             <thead>
                 <tr style="">
                     {% if item.has_val2 %}
@@ -61,14 +63,17 @@
             </tbody>
             </table>
             {% if item.records_plot %}
+                <br />
                 <img src="data:image/png;base64,{{item.records_plot}}" />
             {% endif %}
-            <br />
+                <br />
             {% if item.rolling_means_plot %}
+                <br />
                 <img src="data:image/png;base64,{{item.rolling_means_plot}}" />
             {% endif %}
-            <br />
+                <br />
             {% if item.monthly_means_plot %}
+                <br />
                 <img src="data:image/png;base64,{{item.monthly_means_plot}}" />
             {% endif %}
         <br />

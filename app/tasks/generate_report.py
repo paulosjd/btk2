@@ -5,10 +5,10 @@ from operator import itemgetter
 from typing import List, NamedTuple, Optional, Sequence
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 from celery.utils.log import get_task_logger
 from django.template.loader import get_template
+from matplotlib.ticker import FormatStrFormatter
 from xhtml2pdf import pisa
 
 from app.models import Profile, ProfileParamUnitOption
@@ -19,13 +19,24 @@ log = get_task_logger(__name__)
 
 
 # @celery_app.task
-def profile_report_pdf(profile_id, date='20th Feb 2018'):
+def profile_report_pdf(profile_id, date_str='', param_ids=None, file_name='ab'):
     profile = Profile.objects.filter(id=profile_id).first()
-    if not profile:
+    param_ids = list(range(250))
+    if not all([profile, param_ids, file_name]):
         return
+    today = None
+    try:
+        today = datetime.datetime.strptime(
+            date_str.partition(' ')[-1], '%b %d %Y'
+        )
+    except ValueError:
+        pass
     report_data = {
-        'items_list': get_items_list(profile.all_datapoints(), profile),
-        'date': date
+        'items_list': get_items_list(
+            profile.all_datapoints().filter(parameter_id__in=param_ids),
+            profile
+        ),
+        'date': today or datetime.date.today()
     }
     pdf = render_to_pdf('profile_report.html', report_data)
     with open('foobar.pdf', 'wb') as file:
@@ -43,7 +54,9 @@ def render_to_pdf(template_src, context_dct) -> Optional[bytes]:
 
 
 def get_items_list(all_dps, profile) -> List[dict]:
+    prm_fiels = 'unit_symbol', 'has_val2', 'val2_label_1', 'val2_label_2'
     param_info = get_param_info(all_dps, profile)
+
     items_list = [{
         'name': name,
         'unit_symbol': param_info.symbols[ind],
@@ -54,14 +67,10 @@ def get_items_list(all_dps, profile) -> List[dict]:
                     for obj in all_dps if obj.parameter.name == name]
     } for ind, (name, has_val2, lab1, lab2, _) in enumerate(param_info.names)]
 
-    prm_fiels = 'unit_symbol', 'has_val2', 'val2_label_1', 'val2_label_2'
     for ind, item in enumerate(items_list):
         dps, extra = [{k: dct[k] for k in ['date', 'value', 'value2']}
                       for dct in item['records']], {'param_name': item['name']}
-
-        # TODO make dry
         plots = {}
-
         for data_set, stat_key in [
             (item['records'], 'recs'),
             (get_rolling_mean(dps, extra=extra), 'rolling'),
@@ -74,25 +83,23 @@ def get_items_list(all_dps, profile) -> List[dict]:
                 if plot_bio:
                     plots[stat_key] = base64.b64encode(plot_bio.getvalue()
                                                        ).decode('ascii')
-
-
-
         items_list[ind].update({
             'records_plot': plots.get('recs'),
             'rolling_means_plot': plots.get('rolling'),
             'monthly_means_plot': plots.get('monthly'),
         })
+
     return items_list
 
 
 def make_chart_from_data(means_data, stat='', **kwargs) -> Optional[io.BytesIO]:
     title_map = {'rolling': 'Moving averages',
                  'monthly': 'Monthly averages (12 months)'}
-    fig, ax = plt.subplots(figsize=(6.5, 2.5))
+    fig, ax = plt.subplots(figsize=(7, 2.5))
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-    plt.title(title_map.get(stat, ''), fontsize=14, fontname='Arial',
-              loc='left', pad=3)
-    plt.ylabel(kwargs.get('unit_symbol', ''), fontname='Arial', fontsize=7)
+    plt.title(title_map.get(stat, ''), fontsize=11, fontname='Arial',
+              loc='left', pad=6)
+    plt.ylabel(kwargs.get('unit_symbol', ''), fontname='Arial', fontsize=11)
     dtf, key = ('%Y-%m-%d', 'date') if stat != 'monthly' else ('%Y-%b', 'month')
 
     df = pd.DataFrame(
@@ -105,16 +112,17 @@ def make_chart_from_data(means_data, stat='', **kwargs) -> Optional[io.BytesIO]:
     )
     ss = df.iloc[0, :]
     try:
-        ss.plot(color="#8a3b78", linewidth=2, linestyle="-")
+        ss.plot(color="#8a3b78")
     except TypeError:
         return
     if kwargs.get('has_val2'):
         ss2 = df.iloc[1, :]
         try:
-            ss2.plot(color="#c25476", linewidth=2, linestyle="-")
+            ss2.plot(color="#c25476")
         except TypeError:
             return
         plt.legend(loc='upper right', fontsize='small')
+
     bio = io.BytesIO()
     fig.savefig(bio, format="png", bbox_inches='tight')
     plt.close(fig)

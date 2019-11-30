@@ -1,9 +1,10 @@
 celery==4.3.0
 Django==2.1.7
+djangorestframework==3.10.3
 djangorestframework_jwt==1.11.0
+matplotlib==3.1.2
 numpy==1.16.3
 pandas==0.25.1
-pdfkit==0.6.1
 psycopg2==2.7.6
 PyJWT==1.7.1
-djangorestframework==3.10.3
+xhtml2pdf
