@@ -8,7 +8,7 @@ from .views.data_point.qualifying_text import QualifyingTextCrudView
 from .views.profile import (
     AddBookmarksView, CustomMetricAdd, EditBookmarksView, LinkedParamCrud,
     MenuItemAdd, ParamColorsUpdateView, ProfileShareMenu, ProfileInfoUpdate,
-    ProfileSummaryData, TargetUpdateView,
+    ProfileReportView, ProfileSummaryData, TargetUpdateView,
 )
 from .views.user import (
     DeleteUserView, DemoRegistrationAPIView, EmailEditView, LoginHelp,
@@ -25,6 +25,7 @@ urlpatterns = [
     path('profile/bookmarks-add', AddBookmarksView.as_view()),
     path('profile/bookmarks-edit', EditBookmarksView.as_view()),
     path('profile/custom-metric-add', CustomMetricAdd.as_view()),
+    path('profile/generate-report', ProfileReportView.as_view()),
     path('profile/info-update', ProfileInfoUpdate.as_view()),
     path('profile/menu-item-add', MenuItemAdd.as_view()),
     path('profile/linked-param/<action>', LinkedParamCrud.as_view()),
