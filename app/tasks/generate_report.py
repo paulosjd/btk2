@@ -1,7 +1,9 @@
 import base64
 import datetime
 import io
+import os
 from operator import itemgetter
+from tempfile import NamedTemporaryFile
 from typing import List, NamedTuple, Optional, Sequence
 
 import matplotlib.pyplot as plt
@@ -19,11 +21,13 @@ log = get_task_logger(__name__)
 
 
 @celery_app.task
-def profile_report_pdf(
-        profile_id, file_name, date_str='', param_ids=None, removed_stats=None
-):
+def profile_report_pdf(profile_id, date_str='',
+                       param_ids: List[int] = None,
+                       removed_stats: List[str] = None) -> Optional[str]:
+    removed_stats = removed_stats or []
+    current_file = os.path.abspath(os.path.dirname(__file__))
+    tmp_folder = os.path.join(current_file, 'report_temp')
     profile = Profile.objects.filter(id=profile_id).first()
-    param_ids = range(250)
     if not profile and param_ids:
         return
     today = None
@@ -33,16 +37,24 @@ def profile_report_pdf(
         )
     except ValueError:
         pass
+
     report_data = {
         'items_list': get_items_list(
             profile.all_datapoints().filter(parameter_id__in=param_ids),
-            profile
+            profile,
+            removed_stats=removed_stats
         ),
         'date': today or datetime.date.today()
     }
+
     pdf = render_to_pdf('profile_report.html', report_data)
-    with open('foobar.pdf', 'wb') as file:
-        file.write(pdf)
+    file = NamedTemporaryFile(
+        suffix='report.pdf', dir=tmp_folder, delete=False
+    )
+    with open(file.name, 'wb') as f:
+        f.write(pdf)
+
+    return file.name
 
 
 def render_to_pdf(template_src, context_dct) -> Optional[bytes]:
@@ -55,7 +67,8 @@ def render_to_pdf(template_src, context_dct) -> Optional[bytes]:
     log.error(pdf.error)
 
 
-def get_items_list(all_dps, profile) -> List[dict]:
+def get_items_list(all_dps: List[object], profile: object,
+                   removed_stats: List[str]) -> List[dict]:
     prm_fiels = 'unit_symbol', 'has_val2', 'val2_label_1', 'val2_label_2'
     param_info = get_param_info(all_dps, profile)
 
@@ -72,24 +85,29 @@ def get_items_list(all_dps, profile) -> List[dict]:
     for ind, item in enumerate(items_list):
         dps, extra = [{k: dct[k] for k in ['date', 'value', 'value2']}
                       for dct in item['records']], {'param_name': item['name']}
+
+        plot_items = [(item['records'], 'records')]
+        for k, fn in [('rolling', get_rolling_mean),
+                      ('monthly', get_monthly_means)]:
+            if k not in removed_stats:
+                plot_items.append(
+                    (fn(dps, extra=extra), f'{k}_means')
+                )
+
         plots = {}
-        for data_set, stat_key in [
-            (item['records'], 'recs'),
-            (get_rolling_mean(dps, extra=extra), 'rolling'),
-            (get_monthly_means(dps, extra=extra), 'monthly')
-        ]:
+        for data_set, stat_key in plot_items:
             if len(data_set) > 3:
                 plot_bio = make_chart_from_data(
-                    data_set, stat=stat_key, **{k: item[k] for k in prm_fiels}
+                    data_set, stat=stat_key,
+                    **{k: item[k] for k in prm_fiels}
                 )
                 if plot_bio:
                     plots[stat_key] = base64.b64encode(plot_bio.getvalue()
                                                        ).decode('ascii')
-        items_list[ind].update({
-            'records_plot': plots.get('recs'),
-            'rolling_means_plot': plots.get('rolling'),
-            'monthly_means_plot': plots.get('monthly'),
-        })
+        items_list[ind].update(
+            {f'{k}_plot': plots.get(k) for k in
+             ['records', 'rolling_means', 'monthly_means']}
+        )
 
     return items_list
 
@@ -106,7 +124,7 @@ def make_chart_from_data(means_data, stat='', **kwargs) -> Optional[io.BytesIO]:
 
     df = pd.DataFrame(
         {pd.datetime.strptime(d[key], dtf)
-         if stat != 'recs' else pd.to_datetime(datetime.datetime.combine(
+         if stat != 'records' else pd.to_datetime(datetime.datetime.combine(
             d[key], datetime.time())):
             [d.get(f'value{i}', '') for i in ['', 2]]
          for d in means_data[::-1] if d.get(key)},
@@ -134,7 +152,7 @@ def make_chart_from_data(means_data, stat='', **kwargs) -> Optional[io.BytesIO]:
 ParamInfo = NamedTuple('p_info', [('names', Sequence), ('symbols', list)])
 
 
-def get_param_info(all_dps: list, profile: object) -> ParamInfo:
+def get_param_info(all_dps: List[object], profile: object) -> ParamInfo:
     param_names = sorted(
         set([(obj.parameter.name,
               obj.parameter.num_values == 2,
