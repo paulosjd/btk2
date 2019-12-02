@@ -32,9 +32,7 @@ def profile_report_pdf(profile_id, date_str='',
         return
     today = None
     try:
-        today = datetime.datetime.strptime(
-            date_str.partition(' ')[-1], '%b %d %Y'
-        )
+        today = datetime.datetime.strptime(date_str, '%b %d %Y')
     except ValueError:
         pass
 
@@ -113,8 +111,8 @@ def get_items_list(all_dps: List[object], profile: object,
 
 
 def make_chart_from_data(means_data, stat='', **kwargs) -> Optional[io.BytesIO]:
-    title_map = {'rolling': 'Moving averages',
-                 'monthly': 'Monthly averages (12 months)'}
+    title_map = {'rolling_means': 'Moving averages',
+                 'monthly_means': 'Monthly averages (12 months)'}
     fig, ax = plt.subplots(figsize=(7, 2.5))
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
     plt.title(title_map.get(stat, ''), fontsize=11, fontname='Arial',
