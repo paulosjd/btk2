@@ -1,8 +1,11 @@
 from django.http import HttpRequest
 
 
-class BaseMockObj:
+class MockObj:
+    """ Usage e.g. MockObj(color='red', set_callables=[('my_method', 5), ]) """
     def __init__(self, **kwargs):
+        for name, value in kwargs.pop('callable_attrs', []):
+            setattr(self, name, lambda: value)
         for k, v in kwargs.items():
             self.__dict__[k] = v
 
@@ -12,22 +15,22 @@ class BaseMockObj:
         return len(self.__dict__)
 
 
-class MockObj(BaseMockObj):
-    """ Usage e.g. MockObj(set_callables=[('my_mocked_method', 5), ] """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        for name, value in kwargs.get('callable_attrs', []):
-            setattr(self, name, lambda: value)
+class MockCeleryAsyncResult:
+    def __init__(self, should_be_ready=False):
+        self.should_be_ready = should_be_ready
+        self.ready = lambda: self.should_be_ready
+        self.result = 'result'
+
+    @classmethod
+    def create_ready(cls, task_id):
+        return cls(should_be_ready=True)
+
+    @classmethod
+    def create_not_ready(cls, task_id):
+        return cls(should_be_ready=False)
 
 
-# TODO Make a class factory so that can return MockObj whereby
-# e.g. foo = AsyncCeleryResult(task_id)  .. foo.ready()  ->
-# mock_obj instance created by AsyncCeleryResult patch is True of False
-# is True or False depending on args to factory call
-# so no need to do inheritance where one implementation returns True other False
-
-
-class LazyAttrObj(BaseMockObj):
+class LazyAttrObj(MockObj):
     def __getattr__(self, item):
         if not self.__dict__.get(item):
             return None

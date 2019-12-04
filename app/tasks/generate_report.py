@@ -28,7 +28,7 @@ def profile_report_pdf(profile_id, date_str='',
     current_file = os.path.abspath(os.path.dirname(__file__))
     tmp_folder = os.path.join(current_file, 'report_temp')
     profile = Profile.objects.filter(id=profile_id).first()
-    if not profile and param_ids:
+    if not profile or not param_ids:
         return
     today = None
     try:
