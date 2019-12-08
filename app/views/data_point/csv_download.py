@@ -32,7 +32,7 @@ class CsvDownloadView(APIView):
         profile = request.user.profile
 
         if date_fmt and param_names:
-            parameters = [Parameter.objects.get(name=field)
+            parameters = [Parameter.objects.unfiltered().get(name=field)
                           for field in param_names]
             self.init(parameters, date_fmt)
 
