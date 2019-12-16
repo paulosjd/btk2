@@ -1,6 +1,7 @@
 from collections import namedtuple
 import logging
 
+from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models
 
@@ -107,3 +108,13 @@ class DataPoint(models.Model):
     @classmethod
     def create_demo_profile_data(cls, profile):
         cls.objects.filter(profile__user__name='demo').update(profile=profile)
+
+    @classmethod
+    def create_fixture_for_custom_parent(cls, param_id, file_name):
+        """ For creating fixture data for parent which is custom
+        and so missing from dumpdata output due to queryset override """
+        dp = cls.objects.filter(parameter_id=param_id).first()
+        if dp:
+            data = serializers.serialize("json", [dp.parameter])
+            with open(f'{file_name}.json', 'w') as out:
+                out.write(data)

@@ -119,3 +119,19 @@ class ProfileParamUnitOption(models.Model):
         return {f'unit_{field}': getattr(unit_opt, field)
                 for field in ['symbol', 'name', 'param_default',
                               'conversion_factor']}
+
+    @classmethod
+    def create_fixture_for_custom_parent(cls, clause_dct, file_name):
+        """
+        For creating fixture data for parent which is custom and so missing from
+        dumpdata output due to queryset override.
+        Example call args: {'parameter_id': 32}, 'foo'
+          where dict has one set of items for the key <parent>_id as string
+        """
+        ppuo = cls.objects.filter(**clause_dct).first()
+        if ppuo:
+            data = serializers.serialize(
+                "json", [getattr(ppuo, list(clause_dct.keys())[0].strip('_id'))]
+            )
+            with open(f'{file_name}.json', 'w') as out:
+                out.write(data)
