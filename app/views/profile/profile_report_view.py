@@ -28,7 +28,7 @@ class ProfileReportView(APIView):
         if task_result.ready():
             fnm = f'{request.user.username}_report_{datetime.now():%Y%b%d}.pdf'
             try:
-                with open(task_result.result, 'r') as pdf:
+                with open(task_result.result, 'rb') as pdf:
                     response = HttpResponse(
                         pdf.read(), content_type='application/pdf'
                     )
