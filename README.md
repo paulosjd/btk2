@@ -1,6 +1,6 @@
 **btk2**
 
-REST API backend for a [web application](http://mysite.com) used to track individuals health metrics.
+REST API backend for a [web application](https://health.paulja.me) used to track individuals health metrics.
 
 Third party libraries include Django 2.1, PyJWT, Django Rest Framework 3.5 and Celery 4.3. 
 Configured to use Postgres for the database and Redis as the message broker for Celery tasks.
