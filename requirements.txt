@@ -1,6 +1,6 @@
 celery==4.3.0
 Django==2.1.7
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 djangorestframework_jwt==1.11.0
 matplotlib==3.1.2
 numpy==1.16.3
